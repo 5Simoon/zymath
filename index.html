@@ -11,6 +11,7 @@
     
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=<%= process.env.DESMOS_API %>"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
@@ -533,15 +534,15 @@
                 </div>
             </div>
 
-            <div class="grid" style="margin-bottom: 24px;">
+           <div class="grid" style="margin-bottom: 24px;">
                 <div class="glow-card full-width">
                     <div class="glow-card-border"></div>
                     <div class="card-inner">
-                        <div class="card-title"><i data-lucide="external-link"></i> Desmos API (System Zewnętrzny)</div>
-                        <div class="theory-block">Zintegrowany moduł z serwerów Desmos. Używaj go do wyznaczania dokładnych punktów przecięć krzywych, rysowania nierówności oraz parametryzacji suwakami.</div>
-                        <div style="border-radius: var(--radius-md); border: 1px solid var(--border-subtle); overflow: hidden;">
-                            <iframe src="https://www.desmos.com/calculator?embed" width="100%" height="450" style="border: none; display: block;" frameborder="0"></iframe>
-                        </div>
+                        <div class="card-title"><i data-lucide="external-link"></i> Desmos Pro (Natywne API)</div>
+                        <div class="theory-block">Profesjonalny moduł ładujący się bezpośrednio z chmury z użyciem prywatnego klucza API. Pozwala na zaawansowaną analitykę i zachowanie pełnej wydajności.</div>
+                        
+                        <div id="desmos-calculator" style="width: 100%; height: 550px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-subtle);"></div>
+                        
                     </div>
                 </div>
             </div>
@@ -977,6 +978,20 @@
 
         // 9. START
         setTimeout(drawGraph, 800);
+        // === INICJALIZACJA NATYWNEGO API DESMOS ===
+        window.addEventListener('load', function() {
+            var elt = document.getElementById('desmos-calculator');
+            if (elt) {
+                // Inicjalizacja kalkulatora z włączonymi opcjami
+                var calculator = Desmos.GraphingCalculator(elt, {
+                    keypad: true,
+                    expressions: true,
+                    settingsMenu: true,
+                    zoomButtons: true,
+                    expressionsTopbar: true
+                });
+            }
+        });
     </script>
 </body>
 </html>
