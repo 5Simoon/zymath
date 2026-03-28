@@ -1,49 +1,10 @@
 
 'use strict';
-function sanitizeInput(input) {
-    const temp = document.createElement('div');
-    temp.textContent = input;
-    return temp.innerHTML.replace(/[<>'"\/]/g, ''); // Usuwa znaki specjalne HTML
-}
-
-// Przykład użycia:
-let rawValue = document.getElementById('calc-input').value;
-let safeValue = sanitizeInput(rawValue);
 
 /* ═══════════════════════════════════════════════════════════
    1. INIT
 ═══════════════════════════════════════════════════════════ */
 lucide.createIcons();
-// 1. Iframe Buster - jeśli strona jest w ramce, natychmiast ją z niej "wyrywa"
-if (window.top !== window.self) {
-    window.top.location = window.self.location;
-}
-
-// 2. Prosta ochrona przed kopiowaniem treści (opcjonalna, ekstremalna)
-document.addEventListener('contextmenu', event => event.preventDefault()); // Blokuje prawy przycisk myszy
-document.addEventListener('keydown', e => {
-    if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i')) {
-        e.preventDefault(); // Blokuje Ctrl+U (źródło), Ctrl+S (zapis), Ctrl+I (inspekcja)
-    }
-});
-
-// 3. Czyszczenie Referrera przy wyjściu
-document.querySelectorAll('a').forEach(link => {
-    link.setAttribute('rel', 'noopener noreferrer');
-});
-
-// Floating doodle symbols
-(function spawnDoodles() {
-    const symbols = ['∑','∫','π','√','∞','Δ','∂','∇','∈','∉','⊂','⊃','∩','∪','α','β','γ','λ','θ','φ','ω','∀','∃','≠','≈','≤','≥','∝','±','÷','×'];
-    const layer = document.getElementById('doodle');
-    for (let i = 0; i < 22; i++) {
-        const el = document.createElement('span');
-        el.className = 'dk';
-        el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-        el.style.cssText = `left:${Math.random()*100}%;font-size:${Math.random()*16+10}px;animation-duration:${Math.random()*18+14}s;animation-delay:-${Math.random()*20}s;`;
-        layer.appendChild(el);
-    }
-})();
 
 /* ═══════════════════════════════════════════════════════════
    2. SPOTLIGHT GLOW
