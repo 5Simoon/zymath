@@ -1,5 +1,21 @@
 
 'use strict';
+/* PAGE SECURITY */
+// 1. Ochrona przed osadzaniem w ramkach (Iframe Buster)
+if (window.top !== window.self) { window.top.location = window.self.location; }
+
+// 2. Sanitizer - czyść dane z inputów przed liczeniem
+function sanitize(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML.replace(/[<>'"\/]/g, '');
+}
+
+// 3. Honeypot - Pułapka na boty
+// Dodaj w HTML: <input type="text" id="trap" style="display:none;" tabindex="-1">
+function isBot() {
+    return document.getElementById('trap').value.length > 0;
+}
 
 /* ═══════════════════════════════════════════════════════════
    1. INIT
