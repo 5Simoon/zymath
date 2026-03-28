@@ -1,5 +1,97 @@
 
 'use strict';
+(function() {
+    const _SENTINEL_VERSION = "2.4.0-PRO";
+    
+    const SecurityCore = {
+        // 1. Weryfikacja fundamentów (Protokół i Środowisko)
+        checkEnvironment: function() {
+            const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+            if (!isSecure || window.top !== window.self) {
+                this.terminate("Protocol/Framing Violation");
+            }
+        },
+
+        // 2. Detekcja manipulacji przy kodzie (Anti-Tamper)
+        initIntegrityShield: function() {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((m) => {
+                    const criticalNodes = ['security-wrapper', 'desmos-calculator', 'trap-container'];
+                    m.removedNodes.forEach((node) => {
+                        if (criticalNodes.includes(node.id)) this.terminate("Integrity Breach");
+                    });
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        },
+
+        // 3. Pułapka na DevTools (Dynamiczny Debugger)
+        launchDevToolsTrap: function() {
+            const start = new Date();
+            debugger; // Jeśli konsola jest otwarta, skrypt tu "zastygnie"
+            const end = new Date();
+            if (end - start > 100) {
+                console.warn("Security Alert: Debugger attached.");
+            }
+        },
+
+        // 4. Honeypot & Input Shield
+        verifyInputs: function() {
+            const trap = document.getElementById('security_trap');
+            if (trap && trap.value.length > 0) this.terminate("Automated Input Detected");
+            
+            // Blokada wstrzykiwania skryptów w pola tekstowe
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    if (/<script|javascript:|onerror/gi.test(e.target.value)) {
+                        e.target.value = "";
+                        console.error("XSS Attempt Blocked");
+                    }
+                });
+            });
+        },
+
+        // 5. Procedura awaryjna
+        terminate: function(reason) {
+            document.body.innerHTML = `<div style="background:#000;color:#f00;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;text-align:center;">
+                <h1>SECURITY TERMINATION</h1>
+                <p>Reason: ${reason}</p>
+                <button onclick="location.reload()" style="background:#f00;color:#000;border:none;padding:10px 20px;cursor:pointer;font-weight:bold;">RE-AUTHENTICATE</button>
+            </div>`;
+            throw new Error("Security Termination: " + reason);
+        },
+
+        // 6. Cichy "Heartbeat" (Wysyła status do Vercela)
+        heartbeat: function() {
+            fetch('/api/config', { method: 'HEAD', cache: 'no-store' })
+                .catch(() => this.terminate("Connection Interrupted"));
+        }
+    };
+
+    // Uruchomienie systemów
+    window.addEventListener('DOMContentLoaded', () => {
+        SecurityCore.checkEnvironment();
+        SecurityCore.initIntegrityShield();
+        SecurityCore.verifyInputs();
+        
+        // Pętla monitorująca w tle
+        setInterval(() => {
+            SecurityCore.launchDevToolsTrap();
+            SecurityCore.checkEnvironment();
+        }, 3000);
+
+        // Co 30 sekund sprawdza, czy serwer wciąż nas widzi
+        setInterval(() => SecurityCore.heartbeat(), 30000);
+    });
+
+    // Blokada skrótów klawiszowych (Źródło strony / Inspekcja)
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i' || e.key === 'j')) {
+            e.preventDefault();
+        }
+    }, { capture: true });
+
+})();
 /* PAGE SECURITY */
 // 1. Ochrona przed osadzaniem w ramkach (Iframe Buster)
 if (window.top !== window.self) { window.top.location = window.self.location; }
