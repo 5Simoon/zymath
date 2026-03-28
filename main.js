@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
     registerServiceWorker();
     initPWAInstall();
 
+    // Init particles (5. Particles.js geometric)
+    initParticles();
+
     // Init floating doodles
     initDoodle();
 
@@ -102,6 +105,8 @@ function toggleTheme() {
     localStorage.setItem('zymath_theme', next);
     updateThemeIcon(next);
     if (window.lucide) window.lucide.createIcons();
+    // Redraw canvas graph with new theme colors
+    if (typeof drawGraph === 'function') drawGraph();
 }
 
 function updateThemeIcon(theme) {
@@ -237,11 +242,12 @@ function renderHistory() {
         const t = new Date(h.ts);
         const time = t.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
         return `<div class="history-item">
-            <div>
+            <div style="flex:1;min-width:0">
                 <div style="font-size:0.82rem;color:var(--muted-hi)">${h.label}</div>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
                 <span class="h-val">${h.value}</span>
+                <button class="copy-btn" onclick="copyToClipboard('${h.value.replace(/'/g,"\\'").replace(/`/g,'\\`')}',this)" title="Kopiuj wynik"><i data-lucide="copy"></i></button>
                 <span class="h-time">${time}</span>
             </div>
         </div>`;
@@ -521,6 +527,7 @@ const MATH_KEYS = [
     { label: '×',   val: '*' },
     { label: '(',   val: '(' },
     { label: ')',   val: ')' },
+    { label: '⌫',  val: '__BACKSPACE__' },
 ];
 
 let _activeInput = null;
@@ -533,8 +540,19 @@ function initMathKeyboard() {
     });
 }
 
-function insertMathKey(val) {
+function mathKbdBackspace() {
     if (!_activeInput) return;
+    const pos = _activeInput.selectionStart || 0;
+    const v = _activeInput.value;
+    if (pos === 0) return;
+    _activeInput.value = v.slice(0, pos - 1) + v.slice(_activeInput.selectionEnd || pos);
+    _activeInput.selectionStart = _activeInput.selectionEnd = pos - 1;
+    _activeInput.focus();
+}
+
+function insertMathKey(val) {
+    if (val === '__BACKSPACE__') { mathKbdBackspace(); return; }
+    if (!_activeInput) { showSnackbar('⚠ Kliknij najpierw w pole input'); return; }
     const pos = _activeInput.selectionStart || 0;
     const v = _activeInput.value;
     _activeInput.value = v.slice(0, pos) + val + v.slice(_activeInput.selectionEnd || pos);
@@ -600,11 +618,14 @@ function doExportPDF(title, lines) {
             y += 7;
         }
 
-        // Footer
-        doc.setFontSize(8); doc.setTextColor(150, 150, 150);
-        doc.text(`Wygenerowano: ${new Date().toLocaleString('pl-PL')} | zymath.vercel.app`, 14, 285);
+        // Footer band
+        doc.setFillColor(248, 248, 248);
+        doc.rect(0, 278, W, 19, 'F');
+        doc.setFontSize(8); doc.setTextColor(120, 120, 120);
+        doc.text(`Wygenerowano: ${new Date().toLocaleString('pl-PL')} | SHA-256 Secured`, 14, 287);
+        doc.text('zymath.vercel.app © 2026', W - 14, 287, { align: 'right' });
 
-        doc.save(`zymath_${title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
+        doc.save(`zymath_${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`);
         showSnackbar('📄 Raport PDF zapisany');
     } catch (e) {
         showSnackbar('⚠ Błąd eksportu PDF: ' + e.message);
@@ -1351,6 +1372,95 @@ function installPWA() {
     });
 }
 function dismissPWA() { document.getElementById('pwa-banner')?.classList.remove('show'); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   5. PARTICLES (geometric connecting dots — pure Canvas)
+   ═══════════════════════════════════════════════════════════ */
+let _particlesActive = true;
+let _particleRAF = null;
+const _pts = [];
+
+function initParticles() {
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', () => { resize(); });
+
+    const COUNT = Math.min(55, Math.floor(window.innerWidth / 22));
+    _pts.length = 0;
+    for (let i = 0; i < COUNT; i++) {
+        _pts.push({
+            x:  Math.random() * canvas.width,
+            y:  Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.38,
+            vy: (Math.random() - 0.5) * 0.38,
+            r:  Math.random() * 1.8 + 0.9
+        });
+    }
+
+    function loop() {
+        if (!_particlesActive) { _particleRAF = null; return; }
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        const dark = document.documentElement.dataset.theme !== 'light';
+        const dotColor  = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.3)';
+        const lineBase  = dark ? 'rgba(255,255,255,' : 'rgba(0,0,0,';
+
+        for (const p of _pts) {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
+            if (p.y < 0) p.y = H; else if (p.y > H) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = dotColor;
+            ctx.fill();
+        }
+
+        const MAX_DIST = 130;
+        for (let i = 0; i < _pts.length; i++) {
+            for (let j = i + 1; j < _pts.length; j++) {
+                const dx = _pts[i].x - _pts[j].x;
+                const dy = _pts[i].y - _pts[j].y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < MAX_DIST) {
+                    const alpha = ((1 - dist / MAX_DIST) * 0.28).toFixed(3);
+                    ctx.beginPath();
+                    ctx.moveTo(_pts[i].x, _pts[i].y);
+                    ctx.lineTo(_pts[j].x, _pts[j].y);
+                    ctx.strokeStyle = lineBase + alpha + ')';
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                }
+            }
+        }
+        _particleRAF = requestAnimationFrame(loop);
+    }
+    if (_particleRAF) cancelAnimationFrame(_particleRAF);
+    loop();
+}
+
+function toggleParticles() {
+    _particlesActive = !_particlesActive;
+    const canvas = document.getElementById('particles-canvas');
+    const btn = document.getElementById('particles-toggle');
+    if (_particlesActive) {
+        if (canvas) canvas.style.display = 'block';
+        initParticles();
+        if (btn) btn.innerHTML = '<i data-lucide="sparkles"></i> Cząsteczki ON';
+    } else {
+        if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+        if (btn) btn.innerHTML = '<i data-lucide="sparkles"></i> Cząsteczki OFF';
+    }
+    if (window.lucide) window.lucide.createIcons();
+    showSnackbar(_particlesActive ? '✨ Cząsteczki włączone' : '✨ Cząsteczki wyłączone');
+}
 
 /* ═══════════════════════════════════════════════════════════
    24. STARTUP
