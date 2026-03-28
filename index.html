@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Zymath Singularity v2 — matematyczny silnik edukacyjny. Teoria, 12 kalkulatorów, 150 zadań z trzema poziomami trudności.">
+    <meta name="description" content="Zymath Singularity — matematyczny silnik edukacyjny. Teoria, 12 kalkulatorów, 150 zadań z trzema poziomami trudności.">
     <title>Zymath Singularity v2</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,12 +15,29 @@
 
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     
-    <!-- lucide icons — pinned version -->
-    <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js"></script>
-    <!-- MathJax — LaTeX rendering -->
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- Desmos loaded dynamically via /api/config — key never in static HTML -->
+    <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js" integrity="sha384-eebK/XxiwT0RrmoJe5H4I1QOhe1MOKfJ4o6A/k1v611wK+1R7X5XG3wG5w5bKqH9" crossorigin="anonymous"></script>
 
+    <script id="MathJax-script" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" integrity="sha512-6FaAxx8A/RMUNz2NnjG1YxX4qEqrZ2aP1vE3yE7O95i6n1R4oI1x7RXXz8UaLzT161MvU4F/aJp2y0+K9/gMw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Desmos loaded dynamically via /api/config — key never in static HTML -->
+    <meta property="og:title" content="Zymath Singularity">
+    <meta property="og:description" content="Zaawansowany matematyczny silnik edukacyjny. 12 kalkulatorów, teoria i 150 zadań.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://zymath.vercel.app">
+    <meta property="og:image" content="https://zymath.vercel.app/og-image.png">
+    <meta name="theme-color" content="#10b981"> ```
+
+### 3. Jakość (Czystość Kodu): Oddzielenie JS od HTML
+Zauważyłem (na podstawie wcześniejszych fragmentów), że masz trochę kodu JavaScript bezpośrednio w pliku `index.html` (np. funkcję generującą konfetti czy logikę odpytującą `/api/config`). 
+
+W profesjonalnych projektach dąży się do tego, aby HTML był tylko "szkieletem". 
+* **Korzyść dla wydajności:** Przeglądarka może zapisać zewnętrzny plik `.js` w pamięci podręcznej (cache). Pliku HTML zazwyczaj się nie keszuje.
+* **Korzyść dla bezpieczeństwa:** Pozwala to w przyszłości całkowicie zablokować wykonywanie skryptów "inline" w Twojej polityce CSP (Content Security Policy), co jest ostatecznym ciosem dla ataków XSS.
+
+**Jak to zrobić?**
+1. Stwórz plik `main.js` (lub `app.js`) obok `index.html`.
+2. Wytnij cały swój kod JS z dołu pliku `index.html` (to, co masz między `<script>` a `</script>`) i wklej do `main.js`.
+3. W `index.html` zostaw tylko link do tego pliku: `<script src="/main.js" defer></script>`. Atrybut `defer` sprawia, że skrypt załaduje się bez blokowania renderowania strony.
+    
     <style>
         /* ═══════════════════════════════════════════════════════════
            DESIGN TOKENS v2
