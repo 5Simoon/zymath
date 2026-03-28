@@ -2,119 +2,35 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════════
    ZYMATH AEGIS PROTOCOL - INTEGRATED FIREWALL v2.5
-   ═══════════════════════════════════════════════════════════ */(function() {
-    (function() {
-    const Aegis = {
-        status: {
-            isReady: false,
-            retries: 0,
-            isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-        },
-        
-        config: {
-            maxRetries: 5,
-            // Na telefonie dajemy więcej czasu na "oddech" procesora
-            debugThreshold: /Android|iPhone|iPad/i.test(navigator.userAgent) ? 1000 : 400,
-            interval: 5000
-        },
+   ═══════════════════════════════════════════════════════════ */((function() {
+    // 1. Blokada ramek (Clickjacking) - zawsze stabilne
+    if (window.top !== window.self) {
+        window.top.location = window.self.location;
+    }
 
-        init() {
-            // Czekamy, aż DOM będzie stabilny
-            if (document.readyState === 'complete') {
-                this.activate();
-            } else {
-                window.addEventListener('load', () => this.activate());
-            }
-        },
-
-        activate() {
-            this.log("System Shield Initializing...");
-            
-            // 1. Podstawowe blokady natychmiastowe
-            if (window.top !== window.self) window.top.location = window.self.location;
-
-            // 2. Opóźniony start agresywnych skanerów (kluczowe dla mobile!)
-            setTimeout(() => {
-                this.status.isReady = true;
-                this.runCycle();
-                setInterval(() => this.runCycle(), this.config.interval);
-            }, 3000);
-
-            this.setupXSSShield();
-            this.setupKeyBlocker();
-        },
-
-        runCycle() {
-            if (!this.status.isReady) return;
-            
-            this.checkIntegrity();
-            this.checkDebugger();
-        },
-
-        checkIntegrity() {
-            // Sprawdzamy tylko nasz ukryty kontener - to wystarczy
-            const shield = document.getElementById('trap-container');
-            
-            if (!shield) {
-                this.status.retries++;
-                if (this.status.retries >= this.config.maxRetries) {
-                    this.terminate("Integrity Failure");
-                }
-            } else {
-                this.status.retries = 0; // Reset przy sukcesie
-            }
-        },
-
-        checkDebugger() {
-            const start = performance.now();
-            debugger; 
-            const end = performance.now();
-            
-            if (end - start > this.config.debugThreshold) {
-                this.log("Performance lag or inspection detected.");
-                // Na mobile tylko logujemy, na desktopie moglibyśmy być ostrzejsi
-            }
-        },
-
-        setupXSSShield() {
-            const forbidden = /<script|javascript:|onerror|eval\(/gi;
-            document.addEventListener('input', (e) => {
-                if (e.target.tagName === 'INPUT' && forbidden.test(e.target.value)) {
-                    e.target.value = "";
-                    this.log("XSS block");
-                }
-            }, true);
-        },
-
-        setupKeyBlocker() {
-            window.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && ['u', 's', 'i', 'j'].includes(e.key.toLowerCase())) {
-                    e.preventDefault();
-                }
-            }, true);
-        },
-
-        terminate(reason) {
-            console.error("AEGIS FATAL:", reason);
-            // Wyświetlamy błąd w sposób estetyczny, ale blokujący
-            document.body.innerHTML = `
-                <div style="background:#000;color:#ff003c;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;text-align:center;padding:20px;">
-                    <h1 style="border:2px solid #ff003c;padding:20px;">SYSTEM HALTED</h1>
-                    <p>${reason}</p>
-                    <button onclick="location.reload()" style="background:#ff003c;border:none;color:#000;padding:10px 20px;font-weight:bold;cursor:pointer;margin-top:20px;">RE-VERIFY</button>
-                </div>`;
-        },
-
-        log(msg) {
-            // Ciche logowanie, by nie śmiecić w konsoli użytkownika
-            if (window.location.hostname === 'localhost') console.log("🛡️ Aegis:", msg);
+    // 2. Ochrona przed XSS w polach tekstowych
+    const xssPattern = /<script|javascript:|onerror|eval\(/gi;
+    document.addEventListener('input', (e) => {
+        if (e.target.tagName === 'INPUT' && xssPattern.test(e.target.value)) {
+            e.target.value = "";
         }
-    };
+    }, true);
 
-    Aegis.init();
+    // 3. Blokada prawego przycisku i skrótów (tylko desktop)
+    window.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('keydown', e => {
+        if (e.ctrlKey && ['u', 's', 'i', 'j'].includes(e.key.toLowerCase())) {
+            e.preventDefault();
+        }
+    }, true);
+
+    // 4. Ciche sprawdzanie HTTPS
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        window.location.href = "https://" + window.location.hostname + window.location.pathname;
+    }
+
+    console.log("Zymath Shield: Active & Stable");
 })();
-
-
 /* ═══════════════════════════════════════════════════════════
    1. INIT
 ═══════════════════════════════════════════════════════════ */
