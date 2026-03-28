@@ -2,107 +2,90 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════════
    ZYMATH AEGIS PROTOCOL - INTEGRATED FIREWALL v2.5
-   ═══════════════════════════════════════════════════════════ */
-(function() {
+   ═══════════════════════════════════════════════════════════ */(function() {
     const Aegis = {
-        // Konfiguracja progów bezpieczeństwa
         config: {
-            maxDebugTime: 100,
-            heartbeatInterval: 30000,
-            checkInterval: 2000
+            maxDebugTime: 500, // Zwiększone z 100 na 500ms (mniej fałszywych alarmów)
+            heartbeatInterval: 60000, // Raz na minutę wystarczy
+            checkInterval: 5000 // Sprawdzaj co 5 sekund, nie co 2
         },
 
         init: function() {
-            this.secureHeaders();
-            this.integrityCheck();
-            this.antiXSS();
-            this.devToolsTrap();
-            this.heartbeat();
-            
-            // Pętla stałego nadzoru
-            setInterval(() => {
-                this.integrityCheck();
-                this.devToolsTrap();
-            }, this.config.checkInterval);
-
-            console.log("%cZymath Aegis Active", "color: #00ff00; font-weight: bold;");
-        },
-
-        // 1. Weryfikacja środowiska (Protokół i Ramki)
-        secureHeaders: function() {
-            if (window.top !== window.self) window.top.location = window.self.location;
-            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-                this.terminate("Insecure Protocol");
+            // Uruchom sprawdzanie dopiero gdy strona jest w pełni gotowa
+            if (document.readyState === 'complete') {
+                this.runSystems();
+            } else {
+                window.addEventListener('load', () => this.runSystems());
             }
         },
 
-        // 2. Strażnik Struktury (Anti-Tamper)
+        runSystems: function() {
+            this.secureHeaders();
+            this.antiXSS();
+            
+            // Dajemy stronie 2 sekundy "oddechu" przed włączeniem agresywnych skanerów
+            setTimeout(() => {
+                this.integrityCheck();
+                this.heartbeat();
+                
+                setInterval(() => {
+                    this.integrityCheck();
+                    this.devToolsTrap();
+                }, this.config.checkInterval);
+            }, 2000);
+        },
+
+        secureHeaders: function() {
+            if (window.top !== window.self) window.top.location = window.self.location;
+        },
+
         integrityCheck: function() {
-            const criticalElements = ['security-wrapper', 'desmos-calculator', 'trap-container'];
+            // Sprawdzaj tylko jeśli Desmos powinien już tam być
+            const criticalElements = ['trap-container']; 
             criticalElements.forEach(id => {
-                if (!document.getElementById(id) && document.readyState === 'complete') {
-                    this.terminate("DOM Integrity Compromised");
+                if (!document.getElementById(id)) {
+                    console.warn("Aegis: Missing element " + id);
+                    // Nie zabijaj strony od razu, spróbuj go znaleźć w następnym cyklu
                 }
             });
         },
 
-        // 3. Filtr antyskryptowy (Real-time XSS Shield)
         antiXSS: function() {
-            const pattern = /<script|javascript:|onerror|onload|eval\(/gi;
+            const pattern = /<script|javascript:|onerror|eval\(/gi;
             document.addEventListener('input', (e) => {
                 if (e.target.tagName === 'INPUT' && pattern.test(e.target.value)) {
                     e.target.value = "";
-                    console.error("Aegis: XSS Injection Blocked");
                 }
             }, true);
         },
 
-        // 4. Pułapka na Debuggera
         devToolsTrap: function() {
             const start = performance.now();
-            debugger; // Skrypt zatrzyma się tutaj, jeśli konsola jest otwarta
+            debugger; 
             if (performance.now() - start > this.config.maxDebugTime) {
-                this.terminate("Unauthorized Debugging");
+                // Zamiast terminate, najpierw spróbuj tylko ostrzec w konsoli
+                console.error("Aegis: High latency or Debugger detected");
             }
         },
 
-        // 5. Heartbeat (Ciągłość połączenia z serwerem)
         heartbeat: function() {
             setInterval(async () => {
                 try {
-                    const res = await fetch('/api/config', { method: 'HEAD' });
-                    if (res.status === 404) this.terminate("Backend Link Lost");
-                } catch(e) { /* Cichy błąd - brak neta to nie atak */ }
+                    await fetch('/api/config', { method: 'HEAD' });
+                } catch(e) { /* Ignoruj błędy sieciowe, by nie blokować użytkownika offline */ }
             }, this.config.heartbeatInterval);
         },
 
-        // 6. Procedura "Nuklearna" (Blokada strony)
         terminate: function(reason) {
-            document.body.innerHTML = `
-                <div style="background:#000;color:#ff003c;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;border:20px solid #ff003c;box-sizing:border-box;">
-                    <h1 style="font-size:3rem;">SECURITY BREACH</h1>
-                    <p style="font-size:1.2rem;">System Lockdown: ${reason}</p>
-                    <button onclick="location.reload()" style="margin-top:20px;padding:15px 30px;background:#ff003c;color:#000;border:none;font-weight:bold;cursor:pointer;">RE-VALIDATE</button>
-                </div>`;
-            throw new Error("Aegis Lockdown: " + reason);
+            // Wywołuj tylko w ostateczności
+            console.error("CRITICAL SECURITY BREACH: " + reason);
+            // document.body.innerHTML = "..."; // Odkomentuj tylko jeśli ataki są realne i częste
         }
     };
 
-    // Blokada skrótów klawiszowych (Ctrl+U, Ctrl+Shift+I, itp.)
-    window.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i' || e.key === 'j' || e.shiftKey && e.key === 'I')) {
-            e.preventDefault();
-            return false;
-        }
-    }, true);
-
-    // Start systemu po załadowaniu DOM
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => Aegis.init());
-    } else {
-        Aegis.init();
-    }
+    Aegis.init();
 })();
+
 
 
 /* ═══════════════════════════════════════════════════════════
