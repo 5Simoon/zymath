@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Zymath Singularity v2 — matematyczny silnik edukacyjny. Teoria, 12 kalkulatorów, 150 zadań z trzema poziomami trudności.">
+    <title>Zymath Singularity v2</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:ital,wght@0,300..900;1,300..900&family=Google+Sans+Code:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <!-- lucide icons — pinned version -->
+    <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js"></script>
+    <!-- MathJax — LaTeX rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Desmos loaded dynamically via /api/config — key never in static HTML -->
+
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+           DESIGN TOKENS v2
+        ═══════════════════════════════════════════════════════════ */
+        :root {
+            --bg:           #000000;
+            --bg-surface:   #080808;
+            --bg-card:      #0c0c0c;
+            --bg-input:     #040404;
+
+            --border:       rgba(255,255,255,0.07);
+            --border-hover: rgba(255,255,255,0.18);
+
+            --red:          #ff003c;
+            --red-glow:     rgba(255,0,60,0.35);
+            --red-soft:     rgba(255,0,60,0.07);
+            --cyan:         #00d4ff;
+            --cyan-glow:    rgba(0,212,255,0.25);
+            --cyan-soft:    rgba(0,212,255,0.07);
+            --green:        #10b981;
+            --yellow:       #fbbf24;
+
+            --text:         #ffffff;
+            --muted:        #777777;
+            --muted-hi:     #aaaaaa;
+
+            --font-display: 'Bricolage Grotesque', sans-serif;
+            --font-body:    'Figtree', sans-serif;
+            --font-code:    'Google Sans Code', monospace;
+            --font-pixel:   'Press Start 2P', cursive;
+
+            --r-sm:  8px;
+            --r-md:  12px;
+            --r-lg:  20px;
+            --r-xl:  28px;
+            --r-pill: 999px;
+
+            --max-w: 1340px;
+            --ease:  cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--red) var(--bg); }
+        body { background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.65; overflow-x: hidden; min-height: 100vh; }
+        ::selection { background: var(--red-soft); color: var(--red); }
+
+        /* ═══════════════════════════════════════════════════════════
+           BACKGROUND LAYERS
+        ═══════════════════════════════════════════════════════════ */
+        .bg-grid { position: fixed; inset: 0; z-index: -3; pointer-events: none;
+            background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent); }
+        .bg-noise { position: fixed; inset: 0; z-index: -2; pointer-events: none; opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 200px; }
+        .blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; }
+        .blob-1 { width: 55vw; height: 55vw; top: -25%; left: -15%;
+            background: radial-gradient(circle, rgba(255,0,60,0.10) 0%, transparent 65%); filter: blur(80px); }
+        .blob-2 { width: 40vw; height: 40vw; bottom: -10%; right: -10%;
+            background: radial-gradient(circle, rgba(0,212,255,0.07) 0%, transparent 65%); filter: blur(80px); }
+
+        /* Floating math symbols */
+        #doodle { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+            opacity: 0.06; font-family: var(--font-code); font-weight: 700; color: var(--text); }
+        .dk { position: absolute; animation: rise linear infinite; user-select: none; }
+        @keyframes rise {
+            0%   { transform: translateY(105vh) rotate(0deg);  opacity: 0; }
+            8%   { opacity: 1; }
+            92%  { opacity: 1; }
+            100% { transform: translateY(-5vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           NAVIGATION
+        ═══════════════════════════════════════════════════════════ */
+        .nav-wrap { position: fixed; top: 1.25rem; left: 50%; transform: translateX(-50%);
+            width: 94%; max-width: 720px; z-index: 1000; }
+        nav { background: rgba(6,6,6,0.82); backdrop-filter: blur(28px) saturate(180%);
+            border: 1px solid var(--border); border-radius: var(--r-pill);
+            padding: 7px; display: flex; gap: 4px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.02) inset; }
+        .nb { flex: 1; background: transparent; border: none; color: var(--muted);
+            font-family: var(--font-code); font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.8px; padding: 11px 6px;
+            cursor: pointer; border-radius: var(--r-pill); transition: all 0.25s var(--ease);
+            display: flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+        .nb i { width: 15px; height: 15px; flex-shrink: 0; }
+        .nb:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+        .nb.active { color: var(--bg); background: var(--text); box-shadow: 0 0 18px rgba(255,255,255,0.15); }
+        .nb:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+        /* ═══════════════════════════════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════════════════════════════ */
+        .wrap { max-width: var(--max-w); margin: 0 auto; padding: 140px 24px 80px; position: relative; z-index: 2; }
+        section { display: none; }
+        section.active { display: block; animation: reveal 0.45s var(--ease) both; }
+        @keyframes reveal { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .span { grid-column: 1 / -1; }
+
+        /* ═══════════════════════════════════════════════════════════
+           HERO
+        ═══════════════════════════════════════════════════════════ */
+        .hero { text-align: center; padding: 30px 0 70px; }
+        .hero-pill { display: inline-flex; align-items: center; gap: 8px;
+            font-family: var(--font-code); font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--muted); border: 1px solid var(--border); padding: 7px 18px;
+            border-radius: var(--r-pill); margin-bottom: 28px; }
+        .hero-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red);
+            box-shadow: 0 0 10px var(--red); animation: pulse 2s ease infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        h1.main { font-family: var(--font-display); font-size: clamp(3.2rem, 8.5vw, 7.5rem);
+            font-weight: 800; letter-spacing: -3px; line-height: 0.92; margin-bottom: 22px; text-transform: uppercase; }
+        h1.main .ac { color: var(--red); text-shadow: 0 0 60px var(--red-glow);
+            cursor: crosshair; display: inline-block; transition: 0.4s var(--ease); }
+        h1.main .ac:hover { transform: scale(1.04) skewX(-2deg); text-shadow: 0 0 90px var(--red); }
+        .hero-sub { font-size: 1.1rem; color: var(--muted-hi); max-width: 600px; margin: 0 auto 36px; font-weight: 300; }
+
+        /* Stats bar */
+        .stats-bar { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 0; }
+        .stat-pill { display: flex; align-items: center; gap: 10px; padding: 12px 22px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--r-pill); font-family: var(--font-code); font-size: 0.75rem;
+            color: var(--muted); transition: 0.3s; }
+        .stat-pill:hover { border-color: var(--border-hover); color: var(--text); }
+        .stat-pill b { color: var(--cyan); font-size: 1rem; }
+
+        /* ═══════════════════════════════════════════════════════════
+           SECTION HEADING
+        ═══════════════════════════════════════════════════════════ */
+        .sh { display: flex; align-items: center; gap: 14px;
+            font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.4rem);
+            font-weight: 700; letter-spacing: -0.5px; margin: 70px 0 32px;
+            padding-bottom: 18px; border-bottom: 1px solid var(--border); position: relative; }
+        .sh::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 50px; height: 2px; background: var(--red); }
+        .sh i { color: var(--red); width: 28px; height: 28px; }
+        .sh .tag { font-family: var(--font-code); font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-left: auto; }
+
+        /* ═══════════════════════════════════════════════════════════
+           GLOW CARDS
+        ═══════════════════════════════════════════════════════════ */
+        .card { background: var(--bg-card); border-radius: var(--r-lg); position: relative;
+            isolation: isolate; display: flex; flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6); transition: transform 0.3s var(--ease), box-shadow 0.3s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,0.8); }
+        .card::before { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit;
+            background: radial-gradient(600px circle at var(--mx,0) var(--my,0), rgba(255,255,255,0.035), transparent 40%);
+            opacity: 0; transition: opacity 0.4s; }
+        .card:hover::before { opacity: 1; }
+        .card::after { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+            background: radial-gradient(350px circle at var(--mx,0) var(--my,0), rgba(255,0,60,0.85), transparent 38%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            z-index: 1; opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+        .card:hover::after { opacity: 1; }
+        .card-border { position: absolute; inset: 0; border: 1px solid var(--border); border-radius: inherit; pointer-events: none; z-index: 2; }
+        .ci { padding: 28px 30px; flex-grow: 1; display: flex; flex-direction: column; z-index: 3; position: relative; }
+
+        /* ═══════════════════════════════════════════════════════════
+           TYPOGRAPHY INSIDE CARDS
+        ═══════════════════════════════════════════════════════════ */
+        .ct { display: flex; align-items: center; gap: 11px;
+            font-family: var(--font-display); font-size: 1.35rem; font-weight: 700;
+            margin-bottom: 16px; letter-spacing: -0.3px; }
+        .ct i { color: var(--red); flex-shrink: 0; width: 22px; height: 22px; }
+        .ct .badge-cyan { font-family: var(--font-code); font-size: 0.6rem; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--cyan); background: var(--cyan-soft);
+            border: 1px solid rgba(0,212,255,0.2); padding: 2px 8px; border-radius: 4px; margin-left: auto; }
+
+        .tb { padding-bottom: 16px; margin-bottom: 16px; font-size: 0.92rem; color: var(--muted-hi);
+            border-bottom: 1px solid var(--border); line-height: 1.75; }
+        .tb b { color: var(--text); font-weight: 600; }
+
+        .ex { background: rgba(0,0,0,0.5); padding: 15px 18px; border-radius: var(--r-md);
+            margin-bottom: 12px; font-family: var(--font-code); font-size: 0.88rem;
+            border: 1px solid var(--border); }
+
+        .tip { background: var(--red-soft); padding: 14px 16px; border-radius: var(--r-md);
+            margin-bottom: 12px; font-family: var(--font-code); font-size: 0.8rem; color: var(--red);
+            font-weight: 600; display: flex; gap: 10px; align-items: flex-start;
+            border: 1px solid rgba(255,0,60,0.18); }
+        .tip-cyan { background: var(--cyan-soft); color: var(--cyan); border-color: rgba(0,212,255,0.18); }
+        .tip i { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+
+        code { display: block; background: #000; padding: 14px 16px; border-radius: var(--r-md);
+            margin: 10px 0; font-family: var(--font-code); font-size: 0.88rem;
+            border: 1px solid var(--border); color: var(--text); overflow-x: auto; }
+        code.inline { display: inline; padding: 2px 6px; margin: 0; font-size: 0.85em; border-radius: 4px; }
+
+        .math-block { font-size: 1.1rem; line-height: 2.2; margin: 12px 0; }
+
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; border-radius: var(--r-md);
+            overflow: hidden; border: 1px solid var(--border); }
+        th { background: rgba(255,255,255,0.025); color: var(--red); font-family: var(--font-code);
+            font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; padding: 10px 12px; }
+        td { border-top: 1px solid var(--border); padding: 10px 12px; text-align: center; font-size: 0.9rem; color: var(--muted-hi); }
+        td b { color: var(--text); }
+
+        /* accordion */
+        details > summary { list-style: none; cursor: pointer; padding: 14px 0 6px;
+            font-family: var(--font-code); font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--muted); display: flex; align-items: center; gap: 8px;
+            border-top: 1px solid var(--border); transition: color 0.2s; }
+        details > summary:hover { color: var(--text); }
+        details > summary::before { content: '▶'; font-size: 0.65rem; transition: transform 0.2s; }
+        details[open] > summary::before { transform: rotate(90deg); }
+        details:first-child > summary { border-top: none; }
+        details > div { padding: 8px 0 14px; }
+
+        /* ═══════════════════════════════════════════════════════════
+           FORMS & INPUTS
+        ═══════════════════════════════════════════════════════════ */
+        .ig { margin-bottom: 18px; }
+        label { display: block; font-family: var(--font-code); font-size: 0.67rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            margin-bottom: 7px; font-weight: 600; }
+        input[type="text"], input[type="number"] {
+            width: 100%; padding: 13px 16px; background: var(--bg-input);
+            border: 1px solid var(--border); border-radius: var(--r-md);
+            color: var(--text); font-family: var(--font-code); font-size: 0.95rem;
+            transition: 0.25s; outline: none; }
+        input[type="range"] { width: 100%; accent-color: var(--red); cursor: pointer; }
+        input:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+        input:invalid:not(:placeholder-shown) { border-color: var(--red); }
+        input[type="text"]:read-only, input[type="number"]:read-only { color: var(--muted-hi); cursor: default; }
+
+        .btn { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%;
+            padding: 14px 22px; background: var(--text); color: var(--bg); border: none;
+            border-radius: var(--r-md); font-family: var(--font-display); font-weight: 700;
+            font-size: 0.9rem; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer;
+            transition: 0.25s var(--ease); margin-top: 8px; }
+        .btn:hover { background: var(--red); color: var(--text); box-shadow: 0 8px 28px var(--red-glow); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+        .rb { background: var(--bg-input); border: 1px dashed var(--border-hover);
+            border-radius: var(--r-md); padding: 20px; margin-top: 16px; font-family: var(--font-code); min-height: 80px; }
+        .rrow { display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.82rem; color: var(--muted); border-bottom: 1px solid var(--border); padding: 7px 0; }
+        .rrow:last-child { border-bottom: none; }
+        .rrow b { color: var(--text); font-size: 0.95rem; }
+        .rbig { font-family: var(--font-display); font-size: 2rem; font-weight: 800;
+            color: var(--red); text-align: center; margin-top: 20px; text-shadow: 0 0 25px var(--red-glow); }
+
+        /* Tab panels inside cards */
+        .tab-row { display: flex; gap: 4px; margin-bottom: 18px; background: rgba(0,0,0,0.4);
+            padding: 5px; border-radius: var(--r-md); border: 1px solid var(--border); }
+        .tb-btn { flex: 1; padding: 8px; background: transparent; border: none; color: var(--muted);
+            font-family: var(--font-code); font-size: 0.68rem; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .tb-btn.on { background: var(--text); color: var(--bg); }
+        .tb-panel { display: none; }
+        .tb-panel.on { display: block; }
+
+        /* ═══════════════════════════════════════════════════════════
+           GRAPH ENGINE
+        ═══════════════════════════════════════════════════════════ */
+        .graph-wrap { display: grid; grid-template-columns: 270px 1fr; gap: 20px;
+            background: rgba(0,0,0,0.3); padding: 20px; border-radius: var(--r-lg);
+            border: 1px solid var(--border); }
+        @media (max-width: 900px) { .graph-wrap { grid-template-columns: 1fr; } }
+        #gCanvas { width: 100%; height: 460px; border-radius: var(--r-md);
+            border: 1px solid var(--border); cursor: crosshair; display: block; touch-action: none; }
+        .fn-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .fn-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .fn-row input { flex: 1; }
+        .graph-hint { font-family: var(--font-code); font-size: 0.72rem; color: var(--muted); margin-top: 8px; line-height: 1.8; }
+
+        /* ═══════════════════════════════════════════════════════════
+           TASKS
+        ═══════════════════════════════════════════════════════════ */
+        .task-top { display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+        .score-box { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .score-pill { display: flex; align-items: center; gap: 12px;
+            background: var(--red-soft); border: 1px solid rgba(255,0,60,0.25);
+            padding: 12px 28px; border-radius: var(--r-pill);
+            font-family: var(--font-pixel); font-size: 1rem; color: var(--red);
+            box-shadow: 0 0 18px rgba(255,0,60,0.15); }
+        .score-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+            animation: pulse 2s ease infinite; }
+        .progress-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.06);
+            border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--cyan));
+            border-radius: 4px; transition: width 0.5s var(--ease); width: 0%; }
+
+        .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
+        .f-btn { padding: 9px 18px; border-radius: var(--r-pill); cursor: pointer;
+            font-family: var(--font-code); font-weight: 700; font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 0.8px; transition: 0.25s;
+            background: var(--bg-card); border: 1px solid var(--border); color: var(--muted); }
+        .f-btn:hover { border-color: var(--border-hover); color: var(--text); }
+        .f-btn.on { background: var(--text); color: var(--bg); border-color: var(--text); box-shadow: 0 4px 14px rgba(255,255,255,0.12); }
+        .f-btn.easy.on  { background: var(--green); color: #000; border-color: var(--green); box-shadow: 0 4px 14px rgba(16,185,129,0.3); }
+        .f-btn.med.on   { background: var(--yellow); color: #000; border-color: var(--yellow); box-shadow: 0 4px 14px rgba(251,191,36,0.3); }
+        .f-btn.hard.on  { background: var(--red); color: var(--text); border-color: var(--red); box-shadow: 0 4px 14px var(--red-glow); }
+        .sep { width: 1px; height: 32px; background: var(--border); align-self: center; }
+
+        .task-badge { display: inline-flex; align-items: center; gap: 6px;
+            font-family: var(--font-code); font-size: 0.6rem; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 12px; font-weight: 700;
+            border-radius: 5px; padding: 3px 9px; }
+        .task-badge.easy { color: var(--green); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+        .task-badge.medium { color: var(--yellow); background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); }
+        .task-badge.hard { color: var(--red); background: var(--red-soft); border: 1px solid rgba(255,0,60,0.2); }
+
+        .ti { padding: 16px !important; font-size: 1.1rem !important; }
+        .ti.ok  { border-color: var(--green) !important; color: var(--green) !important;
+            background: rgba(16,185,129,0.04) !important; box-shadow: 0 0 0 2px rgba(16,185,129,0.15) !important; }
+        .ti.bad { border-color: var(--red) !important; color: var(--red) !important;
+            background: var(--red-soft) !important; box-shadow: 0 0 0 2px rgba(255,0,60,0.15) !important; }
+
+        .hint-box { margin-top: 10px; padding: 10px 14px; border-radius: var(--r-md);
+            background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15);
+            font-family: var(--font-code); font-size: 0.78rem; color: var(--cyan);
+            display: none; animation: reveal 0.3s var(--ease) both; }
+        .hint-box.show { display: block; }
+
+        .svg-box { text-align: center; margin: 12px 0; background: rgba(0,0,0,0.4);
+            border-radius: var(--r-md); padding: 18px; border: 1px solid var(--border); }
+
+        .confetti-p { position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999; }
+
+        /* ═══════════════════════════════════════════════════════════
+           FOOTER
+        ═══════════════════════════════════════════════════════════ */
+        footer { margin-top: 90px; padding: 52px 24px; border-top: 1px solid var(--border);
+            text-align: center; font-family: var(--font-code); font-size: 0.77rem;
+            color: var(--muted); line-height: 2.2; background: var(--bg); }
+        footer b { color: var(--text); }
+        footer a { color: var(--red); text-decoration: none; border-bottom: 1px dashed var(--red-glow); transition: 0.25s; }
+        footer a:hover { text-shadow: 0 0 12px var(--red); }
+        .fw { margin-top: 18px; display: inline-block; background: var(--red-soft);
+            padding: 7px 18px; border-radius: var(--r-pill); color: var(--red);
+            border: 1px solid rgba(255,0,60,0.18); font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; }
+
+        /* ═══════════════════════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════════════════════ */
+        @media (max-width: 600px) {
+            .nb span { display: none; }
+            .nb { padding: 12px; }
+            .ci { padding: 20px; }
+            .wrap { padding-top: 120px; padding-left: 14px; padding-right: 14px; }
+            .stats-bar { gap: 8px; }
+            .stat-pill { padding: 9px 14px; font-size: 0.68rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-noise"></div>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div id="doodle"></div>
+
+<div class="nav-wrap">
+    <nav role="navigation" aria-label="Główna nawigacja">
+        <button class="nb active" onclick="showTab('home',this)" aria-current="page"><i data-lucide="zap"></i><span>Start</span></button>
+        <button class="nb" onclick="showTab('wiedza',this)"><i data-lucide="book-open"></i><span>Wiedza</span></button>
+        <button class="nb" onclick="showTab('kalkulatory',this)"><i data-lucide="cpu"></i><span>Terminal</span></button>
+        <button class="nb" onclick="showTab('zadania',this)"><i data-lucide="target"></i><span>Zadania</span></button>
+    </nav>
+</div>
+
+<div class="wrap">
+
+<!-- ═══════════════════ SECTION: HOME ═══════════════════ -->
+<section id="home" class="active">
+    <div class="hero">
+        <div class="hero-pill"><span class="hero-dot"></span> System Edukacyjny v2.0</div>
+        <h1 class="main">ZYMATH<br><span class="ac" onclick="easterEgg()">SINGULARITY</span></h1>
+        <p class="hero-sub">Teoria, dowody, kalkulatory i zadania — od podstaw do matury. Czysto. Precyzyjnie. Bez kompromisów.</p>
+        <div class="stats-bar">
+            <div class="stat-pill"><b>8</b> działów teorii</div>
+            <div class="stat-pill"><b>12</b> kalkulatorów</div>
+            <div class="stat-pill"><b>150</b> zadań / 3 poziomy</div>
+            <div class="stat-pill"><b>SHA-256</b> zabezpieczenie odpowiedzi</div>
+        </div>
+    </div>
+
+    <h2 class="sh"><i data-lucide="history"></i> Kroniki Matematyki <span class="tag">4 epoki</span></h2>
+    <div class="grid">
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="pyramid"></i> Starożytność (3000 p.n.e. – 500 n.e.)</div>
+            <div class="tb">Matematyka powstała z potrzeby — Egipcjanie mierzyli Nil i budowali piramidy, Babilończycy stworzyli system <b>sześćdziesiątkowy</b> (nadal używamy go w minutach i stopniach). Przełom: Grecy (Pitagoras, Euklides, Archimedes) wprowadzili <b>dowód matematyczny</b> — wiedza przestała być empiryczna, a stała się absolutną prawdą.</div>
+            <div class="ex">Twierdzenie Pitagorasa (ok. 570 p.n.e.): a² + b² = c² — dowiedzione przez Euklidesa na 46 różnych sposobów.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="globe"></i> Złoty Wiek Islamu & Indie (500–1400)</div>
+            <div class="tb">Indie podarowały światu <b>zero</b> jako pełnoprawną liczbę i system pozycyjny dziesiętny. Al-Chuwarizmi (skąd pochodzi słowo "algorytm") napisał "Kitāb al-mukhtaṣar fī ḥisāb al-jabr" — pierwsze systematyczne omówienie <b>algebry</b>. Bez tego tłumaczenia na łacinę Europa nie miałaby podstaw do Rewolucji Naukowej.</div>
+            <div class="ex">Al-jabr → Algebra. Al-Chuwarizmi → Algorithm. Cyfra arabska 0 → cały system pozycyjny.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="flask-conical"></i> Rewolucja Naukowa (1500–1800)</div>
+            <div class="tb">Newton i Leibniz niezależnie wynaleźli <b>rachunek różniczkowy i całkowy</b> (największy spór w historii nauki). Pozwoliło to obliczać prędkości chwilowe, modelować ruch planet i zaprojektować silniki parowe. Euler sformalizował notację: \(e, \pi, i, f(x), \sum, \Delta\) — używamy jej do dziś. <b>Wielki Twierdzenie Fermata</b> (1637) czekało na dowód 358 lat.</div>
+            <div class="ex">e^(iπ) + 1 = 0 — tożsamość Eulera: 5 najważniejszych stałych matematyki w jednym równaniu.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="binary"></i> Era Komputerów (1900–teraz)</div>
+            <div class="tb">Hilbert sformułował 23 wielkie problemy (1900) — część nierozwiązana do dziś. Gödel udowodnił (1931), że każdy spójny system aksjomatyczny zawiera <b>twierdzenia nierozstrzygalne</b>. Turing stworzył matematyczne podstawy komputerów. Dziś kryptografia RSA, uczenie maszynowe i grafika 3D opierają się wprost na teorii grup, algebrze liniowej i rachunku różniczkowym.</div>
+            <div class="tip tip-cyan"><i data-lucide="cpu"></i> Problem P vs NP — jeden z 7 Problemów Milenijnych. Nagroda: 1 000 000 USD. Nierozwiązany.</div>
+        </div></div>
+    </div>
+
+    <h2 class="sh"><i data-lucide="sparkles"></i> Anomalie Wszechświata <span class="tag">6 faktów</span></h2>
+    <div class="grid-3">
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="equal"></i> 0.999... = 1 (dokładnie)</div>
+            <div class="tb">Nie przybliżenie — fakt analityczny. Dowód: \(\frac{1}{3} = 0.333...\), więc \(3 \times \frac{1}{3} = 0.999...\), ale \(\frac{3}{3} = 1\). Formalnie: \(0.\overline{9} = \sum_{n=1}^{\infty} \frac{9}{10^n} = 1\). Sprzeciw intuicji wynika z błędnego wyobrażenia o nieskończoności, nie z błędu matematyki.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="infinite"></i> Hotel Hilberta</div>
+            <div class="tb">Hotel z <b>nieskończenie wieloma</b> pokojami, wszystkie zajęte. Przyjeżdża nowy gość — czy może go przyjąć? Tak: przenosimy gościa z pokoju n do pokoju n+1. Pokój 1 wolny. Dowód: ∞ + 1 = ∞. To nie paradoks — to definicja nieskończoności kardynalnej według Cantora.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="atom"></i> Liczba Googolplex</div>
+            <div class="tb">Googol = \(10^{100}\). Googolplex = \(10^{10^{100}}\). Jest tak ogromna, że jej zapis dziesiętny <b>nie zmieściłby się w obserwowalnym wszechświecie</b>. Liczba atomów w wszechświecie: ~\(10^{80}\). Googol jest miliardy razy miliardy razy większy od tej liczby.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="leaf"></i> Złota Proporcja φ</div>
+            <div class="tb">Ciąg Fibonacciego: 1, 1, 2, 3, 5, 8, 13... Iloraz kolejnych wyrazów: \(\frac{F_{n+1}}{F_n} \to \varphi = \frac{1+\sqrt{5}}{2} \approx 1{,}618\). Pojawia się w spirali ślimaka, układzie nasion słonecznika, proporcjach DNA i partyturach muzycznych Debussy'ego.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="wind"></i> Teoria Chaosu</div>
+            <div class="tb">Układ deterministyczny (dokładne prawa fizyki, zero losowości) może być <b>nieprzewidywalny</b>. Nieznaczna zmiana warunków początkowych prowadzi do radykalnie innych wyników. Efekt motyla Lorenza (1963): \(\dot{x} = \sigma(y-x)\), \(\dot{y} = x(\rho-z)-y\), \(\dot{z} = xy-\beta z\) — trzy proste równania, nieskończona złożoność.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="dice-5"></i> Paradoks Urodzin</div>
+            <div class="tb">W grupie zaledwie <b>23 osób</b> prawdopodobieństwo, że dwie z nich mają urodziny tego samego dnia, przekracza 50%. Przy 70 osobach — 99.9%. Obliczenie: \(P(\text{brak}) = \frac{365}{365} \cdot \frac{364}{365} \cdot \frac{363}{365} \cdots\). Kontr-intuicyjne, ale matematycznie precyzyjne.</div>
+        </div></div>
+    </div>
+</section>
+
+<!-- ═══════════════════ SECTION: WIEDZA ═══════════════════ -->
+<section id="wiedza">
+    <div class="hero" style="padding-bottom:10px">
+        <h1 class="main">Baza <span class="ac">Wiedzy</span></h1>
+    </div>
+
+    <h2 class="sh"><i data-lucide="atom"></i> Fundamentalne Stałe</h2>
+    <div class="card span"><div class="card-border"></div><div class="ci">
+        <div class="tb">Liczby niewymierne i przestępne — ich rozwinięcie dziesiętne jest nieskończone i nieokresowe. Fundamentalne dla analizy, geometrii i fizyki.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+            <div><code>π ≈ 3.14159265358979... — stosunek obwodu koła do średnicy</code>
+                 <code>e ≈ 2.71828182845904... — podstawa logarytmu naturalnego</code></div>
+            <div><code>φ = (1+√5)/2 ≈ 1.61803398... — złota proporcja</code>
+                 <code>i = √(-1) — jednostka urojona, baza liczb zespolonych</code></div>
+        </div>
+        <div class="tip tip-cyan"><i data-lucide="star"></i> Tożsamość Eulera: e^(iπ) + 1 = 0 — łączy wszystkie 5 stałych w jednym równaniu.</div>
+    </div></div>
+
+    <h2 class="sh"><i data-lucide="variable"></i> Algebra</h2>
+    <div class="grid">
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="braces"></i> Wzory Skróconego Mnożenia</div>
+            <div class="math-block">
+                $$(a \pm b)^2 = a^2 \pm 2ab + b^2$$
+                $$a^2 - b^2 = (a-b)(a+b)$$
+                $$(a \pm b)^3 = a^3 \pm 3a^2b + 3ab^2 \pm b^3$$
+                $$a^3 \pm b^3 = (a \pm b)(a^2 \mp ab + b^2)$$
+            </div>
+            <div class="ex">Przykład: (2x+3)² = 4x² + 12x + 9 &nbsp;|&nbsp; x⁴−16 = (x²−4)(x²+4) = (x−2)(x+2)(x²+4)</div>
+            <div class="tip"><i data-lucide="alert-circle"></i> Najczęstszy błąd: pominięcie środkowego wyrazu 2ab w kwadracie sumy.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="zap"></i> Potęgi i Pierwiastki</div>
+            <div class="math-block">
+                $$a^m \cdot a^n = a^{m+n} \qquad \frac{a^m}{a^n} = a^{m-n}$$
+                $$(a^m)^n = a^{m\cdot n} \qquad (ab)^n = a^n b^n$$
+                $$a^0 = 1 \quad a^{-n} = \frac{1}{a^n} \quad a^{\frac{m}{n}} = \sqrt[n]{a^m}$$
+            </div>
+            <div class="ex">2³ · 2⁵ = 2⁸ = 256 &nbsp;|&nbsp; 27^(2/3) = (∛27)² = 3² = 9</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="equal-not"></i> Równania Liniowe i Nierówności</div>
+            <div class="tb">Schemat: przenieś x na lewą stronę, liczby na prawą, podziel przez współczynnik. Przy mnożeniu/dzieleniu przez liczbę ujemną — <b>odwróć znak nierówności</b>.</div>
+            <div class="math-block">$$ax + b = c \Rightarrow x = \frac{c-b}{a}$$</div>
+            <div class="ex">5x - 3 > 2x + 9 → 3x > 12 → x > 4. Zbiór: (4, +∞)</div>
+            <div class="tip"><i data-lucide="alert-circle"></i> Mnożysz obie strony przez −2? Odwróć &gt; na &lt;!</div>
+        </div></div>
+    </div>
+
+    <h2 class="sh"><i data-lucide="activity"></i> Funkcja Kwadratowa</h2>
+    <div class="card span"><div class="card-border"></div><div class="ci">
+        <div class="tb">Funkcja \(f(x) = ax^2 + bx + c\) opisuje parabolę — trajektorię rzutu ukośnego, kształt luster teleskopów i soczewek optycznych. Trzy formy zapisu są równoważne.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin:16px 0">
+            <div>
+                <div style="font-family:var(--font-code);font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Postać ogólna</div>
+                <div class="math-block">$$y = ax^2 + bx + c$$</div>
+                <code>Wyróżnik: Δ = b² − 4ac</code>
+                <code>Miejsca zerowe: x = (−b ± √Δ) / 2a</code>
+            </div>
+            <div>
+                <div style="font-family:var(--font-code);font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Postać wierzchołkowa</div>
+                <div class="math-block">$$y = a(x-p)^2 + q$$</div>
+                <code>Wierzchołek: p = −b/2a, q = −Δ/4a</code>
+                <code>Oś symetrii: x = p</code>
+            </div>
+            <div>
+                <div style="font-family:var(--font-code);font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Interpretacja Δ</div>
+                <code>Δ &gt; 0 → dwa pierwiastki rzeczywiste</code>
+                <code>Δ = 0 → jeden pierwiastek (podwójny)</code>
+                <code>Δ &lt; 0 → brak pierwiastków rzeczywistych</code>
+            </div>
+        </div>
+        <div class="tip"><i data-lucide="info"></i> Jeśli a &gt; 0: parabola otwarta w górę, minimum w wierzchołku. Jeśli a &lt; 0: otwarta w dół, maksimum w wierzchołku.</div>
+    </div></div>
+
+    <h2 class="sh"><i data-lucide="logs"></i> Logarytmy i Wykładnicze</h2>
+    <div class="grid">
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="logs"></i> Definicja i Własności</div>
+            <div class="math-block">
+                $$\log_a b = c \iff a^c = b \qquad (a>0,\ a\neq 1,\ b>0)$$
+                $$\log_a(x \cdot y) = \log_a x + \log_a y$$
+                $$\log_a \frac{x}{y} = \log_a x - \log_a y$$
+                $$\log_a x^n = n \cdot \log_a x$$
+                $$\log_a b = \frac{\log_c b}{\log_c a} \quad \text{(zmiana podstawy)}$$
+            </div>
+            <div class="ex">log₂(32) = 5, bo 2⁵ = 32 &nbsp;|&nbsp; log₁₀(1000) = 3 &nbsp;|&nbsp; ln(e³) = 3</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="trending-up"></i> Równania Wykładnicze i Logarytmiczne</div>
+            <div class="tb"><b>Metoda:</b> jeśli baza jednakowa → porównaj wykładniki. Jeśli różna → logarytmuj obie strony.</div>
+            <div class="math-block">$$2^{x+1} = 8 \Rightarrow 2^{x+1} = 2^3 \Rightarrow x+1=3 \Rightarrow x=2$$</div>
+            <div class="math-block">$$\log_2(x-1) = 3 \Rightarrow x-1 = 2^3 = 8 \Rightarrow x = 9$$</div>
+            <div class="tip"><i data-lucide="alert-circle"></i> Zawsze sprawdź dziedzinę! Argument logarytmu musi być &gt; 0.</div>
+        </div></div>
+    </div>
+
+    <h2 class="sh"><i data-lucide="triangle"></i> Trygonometria</h2>
+    <div class="card span"><div class="card-border"></div><div class="ci">
+        <div class="tb">Trygonometria opisuje relacje między kątami a bokami — podstawa grafiki 3D, przetwarzania sygnałów (transformata Fouriera), nawigacji i elektrotechniki.</div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;align-items:start">
+            <div>
+                <div class="math-block">
+                    $$\sin^2\alpha + \cos^2\alpha = 1$$
+                    $$\tan\alpha = \frac{\sin\alpha}{\cos\alpha}$$
+                    $$\sin(A+B) = \sin A \cos B + \cos A \sin B$$
+                    $$\cos(2\alpha) = \cos^2\alpha - \sin^2\alpha$$
+                </div>
+                <div class="tip"><i data-lucide="info"></i> Mnemonik ćwiartek: <b>CAST</b> — Cosinus (IV), Wszystkie (I), Sinus (II), Tangens (III).</div>
+            </div>
+            <div style="overflow-x:auto">
+                <table>
+                    <tr><th>Kąt</th><th>0°</th><th>30°</th><th>45°</th><th>60°</th><th>90°</th><th>180°</th><th>270°</th></tr>
+                    <tr><td><b>sin</b></td><td>0</td><td>½</td><td>√2/2</td><td>√3/2</td><td>1</td><td>0</td><td>−1</td></tr>
+                    <tr><td><b>cos</b></td><td>1</td><td>√3/2</td><td>√2/2</td><td>½</td><td>0</td><td>−1</td><td>0</td></tr>
+                    <tr><td><b>tan</b></td><td>0</td><td>√3/3</td><td>1</td><td>√3</td><td>—</td><td>0</td><td>—</td></tr>
+                </table>
+                <div class="tip" style="margin-top:12px"><i data-lucide="info"></i> Prawo sinusów: a/sin A = b/sin B = c/sin C = 2R &nbsp;|&nbsp; Prawo cosinusów: c² = a² + b² − 2ab·cos C</div>
+            </div>
+        </div>
+    </div></div>
+
+    <h2 class="sh"><i data-lucide="list-ordered"></i> Ciągi Liczbowe</h2>
+    <div class="grid">
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="move-right"></i> Ciąg Arytmetyczny</div>
+            <div class="tb">Każdy wyraz różni się od poprzedniego o stałą <b>różnicę r</b>.</div>
+            <div class="math-block">$$a_n = a_1 + (n-1)r \qquad S_n = \frac{(a_1+a_n) \cdot n}{2}$$</div>
+            <div class="ex">2, 5, 8, 11, 14... (r=3). Suma 100 wyrazów: S₁₀₀ = (2+299)·50 = 15050</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="git-branch"></i> Ciąg Geometryczny</div>
+            <div class="tb">Każdy wyraz to poprzedni pomnożony przez stały <b>iloraz q</b> (q ≠ 0, q ≠ 1).</div>
+            <div class="math-block">$$a_n = a_1 \cdot q^{n-1} \qquad S_n = a_1 \cdot \frac{q^n - 1}{q-1}$$</div>
+            <div class="math-block">$$S_\infty = \frac{a_1}{1-q} \quad \text{dla } |q| < 1$$</div>
+            <div class="ex">3, 6, 12, 24... (q=2) &nbsp;|&nbsp; 1, ½, ¼, ⅛... (q=½) → S∞ = 1/(1-½) = 2</div>
+        </div></div>
+    </div>
+
+    <h2 class="sh"><i data-lucide="shapes"></i> Geometria</h2>
+    <div class="card span"><div class="card-border"></div><div class="ci">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+            <div>
+                <div style="font-family:var(--font-code);font-size:0.7rem;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Figury płaskie</div>
+                <code>Trójkąt:     P = ½·a·h</code>
+                <code>Równoboczny: P = (a²√3)/4</code>
+                <code>Koło:        P = πr²    | C = 2πr</code>
+                <code>Trapez:      P = ½·(a+b)·h</code>
+                <code>Romb:        P = ½·d₁·d₂</code>
+                <code>Równoległobok: P = a·h</code>
+            </div>
+            <div>
+                <div style="font-family:var(--font-code);font-size:0.7rem;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Bryły przestrzenne</div>
+                <code>Sześcian:  V = a³     | Pc = 6a²</code>
+                <code>Prostopadł: V = a·b·c | Pc = 2(ab+bc+ac)</code>
+                <code>Walec:     V = πr²h   | Pb = 2πrh</code>
+                <code>Stożek:    V = ⅓πr²h  | l = √(r²+h²)</code>
+                <code>Kula:      V = ⁴⁄₃πr³ | Pc = 4πr²</code>
+            </div>
+            <div>
+                <div style="font-family:var(--font-code);font-size:0.7rem;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Twierdzenia i wzory</div>
+                <code>Pitagoras:    a²+b² = c²</code>
+                <code>Twierdzenie Talesa: odcinki proporcjonalne</code>
+                <code>Wzór Herona: P = √(s(s-a)(s-b)(s-c))</code>
+                <code>Obwód okręgu opisanego: R = abc/(4P)</code>
+                <code>Obwód okręgu wpisanego: r = P/s</code>
+            </div>
+        </div>
+        <div class="tip" style="margin-top:16px"><i data-lucide="alert-circle"></i> Przelicznik objętości: 1 m³ = 1000 dm³ = 1 000 000 cm³. Każde przejście między jednostkami to skok ×1000, nie ×10!</div>
+    </div></div>
+
+    <h2 class="sh"><i data-lucide="dice-5"></i> Kombinatoryka i Prawdopodobieństwo</h2>
+    <div class="grid">
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="git-merge"></i> Zliczanie</div>
+            <div class="math-block">
+                $$P_n = n! \quad \text{(permutacje n elementów)}$$
+                $$V_n^k = \frac{n!}{(n-k)!} \quad \text{(wariacje bez pow.)}$$
+                $$\binom{n}{k} = \frac{n!}{k!(n-k)!} \quad \text{(kombinacje)}$$
+            </div>
+            <div class="ex">Ile słów z liter ABCD? P₄ = 24. Ile 2-elementowych podzbiorów z 5? C(5,2) = 10.</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="percent"></i> Prawdopodobieństwo Klasyczne</div>
+            <div class="math-block">
+                $$P(A) = \frac{|A|}{|\Omega|} \qquad P(\bar{A}) = 1 - P(A)$$
+                $$P(A \cup B) = P(A) + P(B) - P(A \cap B)$$
+                $$P(A|B) = \frac{P(A \cap B)}{P(B)} \quad \text{(warunkowe)}$$
+            </div>
+            <div class="ex">Rzut kostką. P(parzysta) = 3/6 = ½. P(parzysta LUB &gt;4) = 4/6 = ⅔.</div>
+        </div></div>
+    </div>
+
+    <h2 class="sh"><i data-lucide="trending-up"></i> Wstęp do Rachunku Różniczkowego</h2>
+    <div class="grid">
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="move-up-right"></i> Pochodne — Reguły</div>
+            <div class="math-block">
+                $$(x^n)' = n x^{n-1} \qquad (e^x)' = e^x$$
+                $$(\ln x)' = \frac{1}{x} \qquad (\sin x)' = \cos x$$
+                $$(\cos x)' = -\sin x \qquad (\tan x)' = \frac{1}{\cos^2 x}$$
+                $$(f \cdot g)' = f'g + fg' \quad \left(\frac{f}{g}\right)' = \frac{f'g-fg'}{g^2}$$
+            </div>
+            <div class="ex">f(x) = 3x⁴ − 2x² + 5 → f'(x) = 12x³ − 4x</div>
+        </div></div>
+        <div class="card"><div class="card-border"></div><div class="ci">
+            <div class="ct"><i data-lucide="bar-chart-2"></i> Zastosowania Pochodnej</div>
+            <div class="tb"><b>Monotoniczność:</b> f'(x) &gt; 0 → rosnąca. f'(x) &lt; 0 → malejąca.<br>
+            <b>Ekstrema:</b> f'(x₀) = 0 i zmiana znaku → extremum. Drugie kryterium: f''(x₀) &gt; 0 → minimum, f''(x₀) &lt; 0 → maksimum.</div>
+            <div class="math-block">$$f(x) = x^3 - 3x \Rightarrow f'(x) = 3x^2-3 = 0 \Rightarrow x = \pm 1$$</div>
+            <div class="ex">x=−1: maksimum lokalne (f(−1) = 2). x=1: minimum lokalne (f(1) = −2).</div>
+        </div></div>
+    </div>
+</section>
+
+<!-- ═══════════════════ SECTION: KALKULATORY ═══════════════════ -->
+<section id="kalkulatory">
+    <h2 class="sh"><i data-lucide="cpu"></i> Terminal Kalkulacyjny <span class="tag">12 modułów</span></h2>
+
+    <!-- GRAPH ENGINE -->
+    <div class="card span" style="margin-bottom:20px"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="line-chart"></i> Zymath Graph Engine 3.1 <span class="badge-cyan">UPGR</span></div>
+        <div class="graph-wrap">
+            <div>
+                <div style="font-family:var(--font-code);font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px">Funkcje (do 3 jednocześnie)</div>
+                <div class="fn-row"><div class="fn-dot" style="background:#ff003c"></div>
+                    <input type="text" id="fn1" value="Math.sin(x)" autocomplete="off" maxlength="200" oninput="drawGraph()" aria-label="Funkcja 1"></div>
+                <div class="fn-row"><div class="fn-dot" style="background:#00d4ff"></div>
+                    <input type="text" id="fn2" value="" autocomplete="off" maxlength="200" placeholder="opcjonalna..." oninput="drawGraph()" aria-label="Funkcja 2"></div>
+                <div class="fn-row"><div class="fn-dot" style="background:#fbbf24"></div>
+                    <input type="text" id="fn3" value="" autocomplete="off" maxlength="200" placeholder="opcjonalna..." oninput="drawGraph()" aria-label="Funkcja 3"></div>
+                <div class="ig" style="margin-top:14px">
+                    <label for="gScale">Zoom (skala osi)</label>
+                    <input type="range" id="gScale" min="8" max="180" value="45" oninput="drawGraph()">
+                </div>
+                <div id="gCoords" style="font-family:var(--font-code);font-size:0.8rem;color:var(--muted);font-weight:600;margin-bottom:12px">x: — &nbsp;|&nbsp; y: —</div>
+                <button class="btn" onclick="resetGraph()" style="margin-top:0"><i data-lucide="refresh-cw"></i> Reset Widoku</button>
+                <div class="graph-hint">
+                    Scroll → zoom &nbsp;|&nbsp; Drag → przesuń<br>
+                    Przykłady: <code class="inline">x*x</code> &nbsp; <code class="inline">Math.sin(x)*x</code> &nbsp; <code class="inline">1/x</code> &nbsp; <code class="inline">Math.sqrt(Math.abs(x))</code>
+                </div>
+            </div>
+            <canvas id="gCanvas" role="img" aria-label="Wykres funkcji matematycznej"></canvas>
+        </div>
+    </div></div>
+
+    <!-- DESMOS -->
+    <div class="card span" style="margin-bottom:20px"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="external-link"></i> Desmos Pro — Natywne API <span class="badge-cyan">3 TRYBY</span></div>
+        <div class="tb">Profesjonalny kalkulator matematyczny. Klucz API ładowany bezpiecznie z serwera — nigdy w kodzie HTML.</div>
+        <div class="tab-row">
+            <button class="tb-btn on" onclick="switchDesmos('graph',this)">Wykresowy</button>
+            <button class="tb-btn" onclick="switchDesmos('sci',this)">Naukowy</button>
+            <button class="tb-btn" onclick="switchDesmos('geo',this)">Geometria</button>
+        </div>
+        <div id="desmosEl" style="width:100%;height:520px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)"></div>
+        <div id="desmosMsg" style="display:none;padding:24px;font-family:var(--font-code);font-size:0.82rem;color:var(--muted);text-align:center">Ładowanie Desmos API…</div>
+    </div></div>
+
+    <div class="grid">
+
+    <!-- QUADRATIC ANALYZER -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="target"></i> Analiza Funkcji Kwadratowej</div>
+        <div style="display:flex;gap:10px;margin-bottom:4px">
+            <div style="flex:1"><label for="qa">Wsp. a</label><input type="number" id="qa" placeholder="1" autocomplete="off"></div>
+            <div style="flex:1"><label for="qb">Wsp. b</label><input type="number" id="qb" placeholder="-4" autocomplete="off"></div>
+            <div style="flex:1"><label for="qc">Wsp. c</label><input type="number" id="qc" placeholder="3" autocomplete="off"></div>
+        </div>
+        <button class="btn" onclick="calcQuad()"><i data-lucide="cpu"></i> Oblicz Właściwości</button>
+        <div class="rb" id="quadRes" style="min-height:120px;display:flex;flex-direction:column;justify-content:center;text-align:center;color:var(--muted)">Oczekiwanie na parametry…</div>
+    </div></div>
+
+    <!-- LINEAR SYSTEM 2x2 -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="git-branch-plus"></i> Układ Równań 2×2</div>
+        <div class="tb" style="padding-bottom:12px;margin-bottom:12px">Rozwiązuje metodą wyznacznikową (Cramer).<br><span style="font-family:var(--font-code);font-size:0.85rem">a₁x + b₁y = c₁ &nbsp;|&nbsp; a₂x + b₂y = c₂</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <div><label>a₁</label><input type="number" id="s_a1" autocomplete="off" placeholder="1"></div>
+            <div><label>b₁</label><input type="number" id="s_b1" autocomplete="off" placeholder="2"></div>
+            <div><label>c₁</label><input type="number" id="s_c1" autocomplete="off" placeholder="5"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px">
+            <div><label>a₂</label><input type="number" id="s_a2" autocomplete="off" placeholder="3"></div>
+            <div><label>b₂</label><input type="number" id="s_b2" autocomplete="off" placeholder="1"></div>
+            <div><label>c₂</label><input type="number" id="s_c2" autocomplete="off" placeholder="8"></div>
+        </div>
+        <button class="btn" onclick="calcSystem()"><i data-lucide="layers"></i> Rozwiąż Układ</button>
+        <div class="rb" id="sysRes" style="text-align:center;color:var(--muted)">Oczekiwanie…</div>
+    </div></div>
+
+    <!-- TRIG CALCULATOR -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="triangle"></i> Kalkulator Trygonometryczny</div>
+        <div class="tab-row">
+            <button class="tb-btn on" onclick="switchTrig('fn',this)">Funkcje</button>
+            <button class="tb-btn" onclick="switchTrig('tri',this)">Trójkąt</button>
+        </div>
+        <div id="trig-fn" class="tb-panel on">
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+                <div style="flex:2"><label for="trigVal">Kąt</label><input type="number" id="trigVal" autocomplete="off" placeholder="45" oninput="calcTrig()"></div>
+                <div style="flex:1"><label for="trigUnit">Jednostka</label>
+                    <select id="trigUnit" onchange="calcTrig()" style="width:100%;padding:13px 8px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text);font-family:var(--font-code);font-size:0.9rem;outline:none;cursor:pointer">
+                        <option>°</option><option>rad</option>
+                    </select>
+                </div>
+            </div>
+            <div class="rb" id="trigRes"><div class="rrow">sin <b id="tr-sin">—</b></div><div class="rrow">cos <b id="tr-cos">—</b></div><div class="rrow">tan <b id="tr-tan">—</b></div><div class="rrow">cot <b id="tr-cot">—</b></div></div>
+        </div>
+        <div id="trig-tri" class="tb-panel">
+            <div class="tb" style="padding-bottom:10px;margin-bottom:10px">Trójkąt prostokątny — podaj dwa elementy (kąt w stopniach + bok).</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+                <div style="flex:1"><label for="tri-angle">Kąt α (°)</label><input type="number" id="tri-angle" autocomplete="off" placeholder="30" oninput="calcTriangle()"></div>
+                <div style="flex:1"><label for="tri-hyp">Przeciwprostokątna</label><input type="number" id="tri-hyp" autocomplete="off" placeholder="10" oninput="calcTriangle()"></div>
+            </div>
+            <div class="rb" id="triRes"><div class="rrow">Przyprost. a <b id="tri-a">—</b></div><div class="rrow">Przyprost. b <b id="tri-b">—</b></div><div class="rrow">Pole P <b id="tri-p">—</b></div></div>
+        </div>
+    </div></div>
+
+    <!-- NWD/NWW + PRIME -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="divide"></i> NWD, NWW & Liczby Pierwsze</div>
+        <div class="tab-row">
+            <button class="tb-btn on" onclick="switchNwd('nwd',this)">NWD/NWW</button>
+            <button class="tb-btn" onclick="switchNwd('prime',this)">Rozkład</button>
+        </div>
+        <div id="nwd-panel" class="tb-panel on">
+            <div style="display:flex;gap:8px;margin-bottom:4px">
+                <div style="flex:1"><label for="na">Liczba A</label><input type="number" id="na" autocomplete="off" placeholder="12" oninput="calcNwd()"></div>
+                <div style="flex:1"><label for="nb">Liczba B</label><input type="number" id="nb" autocomplete="off" placeholder="18" oninput="calcNwd()"></div>
+            </div>
+            <div class="rb"><div class="rrow">NWD (GCD) <b id="r-nwd">—</b></div><div class="rrow">NWW (LCM) <b id="r-nww" style="color:var(--red)">—</b></div></div>
+        </div>
+        <div id="prime-panel" class="tb-panel">
+            <div class="ig"><label for="primeN">Liczba do rozłożenia</label><input type="number" id="primeN" autocomplete="off" placeholder="np. 360" oninput="calcPrime()"></div>
+            <div class="rb" id="primeRes" style="color:var(--muted)">Wpisz liczbę…</div>
+        </div>
+    </div></div>
+
+    <!-- STATISTICS -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="bar-chart-2"></i> Statystyka Opisowa</div>
+        <div class="ig"><label for="statIn">Dane (po przecinku)</label>
+            <input type="text" id="statIn" autocomplete="off" maxlength="500" placeholder="np. 4, 7, 13, 2, 9, 7, 3" oninput="calcStats()">
+        </div>
+        <div class="rb" aria-live="polite">
+            <div class="rrow">Średnia arytm. <b id="s-mean">—</b></div>
+            <div class="rrow">Mediana <b id="s-med">—</b></div>
+            <div class="rrow">Dominanta (moda) <b id="s-mode">—</b></div>
+            <div class="rrow">Odch. std (próbka) <b id="s-std" style="color:var(--cyan)">—</b></div>
+            <div class="rrow">Zakres (max−min) <b id="s-range">—</b></div>
+            <div class="rrow">n <b id="s-n" style="color:var(--red)">0</b></div>
+        </div>
+    </div></div>
+
+    <!-- NUMBER SYSTEMS -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="binary"></i> Systemy Liczbowe</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><label for="s-dec">Dziesiętny (Dec)</label><input type="text" id="s-dec" autocomplete="off" maxlength="10" oninput="convSys('dec')"></div>
+            <div><label for="s-bin">Binarny (Bin)</label><input type="text" id="s-bin" autocomplete="off" maxlength="32" oninput="convSys('bin')"></div>
+            <div><label for="s-oct">Ósemkowy (Oct)</label><input type="text" id="s-oct" autocomplete="off" maxlength="11" oninput="convSys('oct')"></div>
+            <div><label for="s-hex">Szesnastkowy (Hex)</label><input type="text" id="s-hex" autocomplete="off" maxlength="8" oninput="convSys('hex')"></div>
+            <div style="grid-column:1/-1"><label for="s-rom">Rzymski</label><input type="text" id="s-rom" autocomplete="off" maxlength="15" oninput="convSys('rom')"></div>
+        </div>
+    </div></div>
+
+    <!-- PHYSICS -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="rocket"></i> Fizyka — Dynamika & Kinematyka</div>
+        <div class="tab-row">
+            <button class="tb-btn on" onclick="switchPhys('newton',this)">Newton F=ma</button>
+            <button class="tb-btn" onclick="switchPhys('kinem',this)">Kinematyka</button>
+        </div>
+        <div id="p-newton" class="tb-panel on">
+            <div style="display:flex;gap:8px;margin-bottom:4px">
+                <div style="flex:1"><label for="ph-m">Masa m (kg)</label><input type="number" id="ph-m" autocomplete="off" placeholder="5" oninput="calcNewton()"></div>
+                <div style="flex:1"><label for="ph-a">Przysp. a (m/s²)</label><input type="number" id="ph-a" autocomplete="off" placeholder="9.81" oninput="calcNewton()"></div>
+            </div>
+            <div class="rbig" id="ph-res" aria-live="polite">0.00 N</div>
+        </div>
+        <div id="p-kinem" class="tb-panel">
+            <div class="tb" style="padding-bottom:10px;margin-bottom:10px">Ruch jednostajnie przyspieszony: v = v₀ + at &nbsp;|&nbsp; s = v₀t + ½at²</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                <div><label for="k-v0">v₀ (m/s)</label><input type="number" id="k-v0" autocomplete="off" placeholder="0" oninput="calcKinem()"></div>
+                <div><label for="k-a">a (m/s²)</label><input type="number" id="k-a" autocomplete="off" placeholder="9.81" oninput="calcKinem()"></div>
+                <div><label for="k-t">t (s)</label><input type="number" id="k-t" autocomplete="off" placeholder="3" oninput="calcKinem()"></div>
+            </div>
+            <div class="rb"><div class="rrow">v końcowa <b id="k-v">—</b></div><div class="rrow">Droga s <b id="k-s">—</b></div></div>
+        </div>
+    </div></div>
+
+    <!-- COMPOUND INTEREST -->
+    <div class="card"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="pie-chart"></i> Procent Składany & Pożyczka</div>
+        <div class="tab-row">
+            <button class="tb-btn on" onclick="switchFin('cap',this)">Kapitalizacja</button>
+            <button class="tb-btn" onclick="switchFin('loan',this)">Rata kredytu</button>
+        </div>
+        <div id="f-cap" class="tb-panel on">
+            <div class="ig"><label for="fk">Kapitał K (PLN)</label><input type="number" id="fk" autocomplete="off" placeholder="10000" oninput="calcFin()"></div>
+            <div style="display:flex;gap:8px;margin-bottom:4px">
+                <div style="flex:1"><label for="fp">Stopa r (%/rok)</label><input type="number" id="fp" autocomplete="off" placeholder="7" oninput="calcFin()"></div>
+                <div style="flex:1"><label for="fn2">Lata n</label><input type="number" id="fn2" autocomplete="off" placeholder="10" oninput="calcFin()"></div>
+            </div>
+            <div class="rb"><div class="rrow">Wartość końcowa <b id="f-total" style="color:var(--red)">—</b></div><div class="rrow">Zysk <b id="f-profit" style="color:var(--green)">—</b></div></div>
+        </div>
+        <div id="f-loan" class="tb-panel">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+                <div><label for="l-P">Kwota (PLN)</label><input type="number" id="l-P" autocomplete="off" placeholder="100000" oninput="calcLoan()"></div>
+                <div><label for="l-r">Stopa (%/rok)</label><input type="number" id="l-r" autocomplete="off" placeholder="6" oninput="calcLoan()"></div>
+                <div><label for="l-n">Liczba rat</label><input type="number" id="l-n" autocomplete="off" placeholder="120" oninput="calcLoan()"></div>
+            </div>
+            <div class="rb"><div class="rrow">Rata miesięczna <b id="l-rate" style="color:var(--red)">—</b></div><div class="rrow">Łączna spłata <b id="l-total">—</b></div></div>
+        </div>
+    </div></div>
+
+    <!-- UNIT CONVERTER -->
+    <div class="card span"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="ruler"></i> Konwerter Jednostek</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px">
+            <div>
+                <label for="u-km" style="color:var(--cyan)">Długość</label>
+                <input type="number" id="u-km" placeholder="km" autocomplete="off" oninput="convDist('km')" style="margin-bottom:6px">
+                <input type="number" id="u-m"  placeholder="m"  autocomplete="off" oninput="convDist('m')"  style="margin-bottom:6px">
+                <input type="number" id="u-cm" placeholder="cm" autocomplete="off" oninput="convDist('cm')" style="margin-bottom:6px">
+                <input type="number" id="u-in" placeholder="cale (in)" autocomplete="off" oninput="convDist('in')">
+            </div>
+            <div>
+                <label for="u-kg" style="color:var(--cyan)">Masa</label>
+                <input type="number" id="u-kg" placeholder="kg" autocomplete="off" oninput="convMass('kg')" style="margin-bottom:6px">
+                <input type="number" id="u-g"  placeholder="g"  autocomplete="off" oninput="convMass('g')"  style="margin-bottom:6px">
+                <input type="number" id="u-lb" placeholder="funty (lb)" autocomplete="off" oninput="convMass('lb')">
+            </div>
+            <div>
+                <label for="u-c" style="color:var(--cyan)">Temperatura</label>
+                <input type="number" id="u-c" placeholder="°C" autocomplete="off" oninput="convTemp('c')" style="margin-bottom:6px">
+                <input type="number" id="u-f" placeholder="°F" autocomplete="off" oninput="convTemp('f')" style="margin-bottom:6px">
+                <input type="number" id="u-k" placeholder="K" autocomplete="off" oninput="convTemp('k')">
+            </div>
+            <div>
+                <label for="u-mb" style="color:var(--cyan)">Dane cyfrowe</label>
+                <input type="number" id="u-mb" placeholder="MB" autocomplete="off" oninput="convData('mb')" style="margin-bottom:6px">
+                <input type="number" id="u-gb" placeholder="GB" autocomplete="off" oninput="convData('gb')" style="margin-bottom:6px">
+                <input type="number" id="u-tb" placeholder="TB" autocomplete="off" oninput="convData('tb')">
+            </div>
+        </div>
+    </div></div>
+
+    <!-- GEOMETRY CALCULATOR -->
+    <div class="card span"><div class="card-border"></div><div class="ci">
+        <div class="ct"><i data-lucide="shapes"></i> Kalkulator Geometryczny</div>
+        <div class="tab-row">
+            <button class="tb-btn on" onclick="switchGeo('tri',this)">Trójkąt</button>
+            <button class="tb-btn" onclick="switchGeo('cir',this)">Koło</button>
+            <button class="tb-btn" onclick="switchGeo('cyl',this)">Walec</button>
+            <button class="tb-btn" onclick="switchGeo('cone',this)">Stożek</button>
+            <button class="tb-btn" onclick="switchGeo('sph',this)">Kula</button>
+        </div>
+        <div id="geo-tri" class="tb-panel on">
+            <div style="display:flex;gap:8px;margin-bottom:4px">
+                <div style="flex:1"><label for="g-ta">Podstawa a</label><input type="number" id="g-ta" autocomplete="off" oninput="calcGeo('tri')"></div>
+                <div style="flex:1"><label for="g-th">Wysokość h</label><input type="number" id="g-th" autocomplete="off" oninput="calcGeo('tri')"></div>
+                <div style="flex:1"><label for="g-tc">Bok c (opcjonalnie)</label><input type="number" id="g-tc" autocomplete="off" oninput="calcGeo('tri')"></div>
+            </div>
+            <div class="rb"><div class="rrow">Pole P <b id="geo-tri-p">—</b></div><div class="rrow">Obwód (a+2c lub a+h...) <b id="geo-tri-o">— (podaj wszystkie boki)</b></div></div>
+        </div>
+        <div id="geo-cir" class="tb-panel">
+            <div class="ig"><label for="g-cr">Promień r</label><input type="number" id="g-cr" autocomplete="off" oninput="calcGeo('cir')"></div>
+            <div class="rb"><div class="rrow">Pole P = πr² <b id="geo-cir-p">—</b></div><div class="rrow">Obwód C = 2πr <b id="geo-cir-c">—</b></div></div>
+        </div>
+        <div id="geo-cyl" class="tb-panel">
+            <div style="display:flex;gap:8px;margin-bottom:4px">
+                <div style="flex:1"><label for="g-cylr">Promień r</label><input type="number" id="g-cylr" autocomplete="off" oninput="calcGeo('cyl')"></div>
+                <div style="flex:1"><label for="g-cylh">Wysokość h</label><input type="number" id="g-cylh" autocomplete="off" oninput="calcGeo('cyl')"></div>
+            </div>
+            <div class="rb"><div class="rrow">Objętość V = πr²h <b id="geo-cyl-v">—</b></div><div class="rrow">Pow. całk. Pc = 2πr(r+h) <b id="geo-cyl-pc">—</b></div></div>
+        </div>
+        <div id="geo-cone" class="tb-panel">
+            <div style="display:flex;gap:8px;margin-bottom:4px">
+                <div style="flex:1"><label for="g-conr">Promień r</label><input type="number" id="g-conr" autocomplete="off" oninput="calcGeo('cone')"></div>
+                <div style="flex:1"><label for="g-conh">Wysokość h</label><input type="number" id="g-conh" autocomplete="off" oninput="calcGeo('cone')"></div>
+            </div>
+            <div class="rb"><div class="rrow">Objętość V = ⅓πr²h <b id="geo-cone-v">—</b></div><div class="rrow">Tworzącą l = √(r²+h²) <b id="geo-cone-l">—</b></div><div class="rrow">Pow. całk. Pc = πr(r+l) <b id="geo-cone-pc">—</b></div></div>
+        </div>
+        <div id="geo-sph" class="tb-panel">
+            <div class="ig"><label for="g-spr">Promień r</label><input type="number" id="g-spr" autocomplete="off" oninput="calcGeo('sph')"></div>
+            <div class="rb"><div class="rrow">Objętość V = ⁴⁄₃πr³ <b id="geo-sph-v">—</b></div><div class="rrow">Pow. Pc = 4πr² <b id="geo-sph-pc">—</b></div></div>
+        </div>
+    </div></div>
+
+    </div><!-- /grid -->
+</section>
+
+<!-- ═══════════════════ SECTION: ZADANIA ═══════════════════ -->
+<section id="zadania">
+    <div class="task-top">
+        <div>
+            <h2 class="sh" style="margin:0;border:none;padding:0"><i data-lucide="target"></i> Symulacja Zadań</h2>
+            <div style="font-family:var(--font-code);font-size:0.78rem;color:var(--muted);margin-top:8px">STATUS: <span style="color:var(--red);font-weight:700">ONLINE</span> &nbsp;|&nbsp; BAZA: 150 ZADAŃ &nbsp;|&nbsp; 3 POZIOMY TRUDNOŚCI</div>
+        </div>
+        <div class="score-box">
+            <div class="score-pill"><span class="score-dot"></span>EXP: <span id="scoreBoard" style="color:var(--text)">0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div style="font-family:var(--font-code);font-size:0.62rem;color:var(--muted);text-align:right"><span id="solvedCount">0</span>/150 rozwiązanych</div>
+        </div>
+    </div>
+
+    <div class="filters" role="group" aria-label="Filtry trudności i kategorii">
+        <button class="f-btn on" onclick="applyFilter('all',this)">Wszystkie</button>
+        <div class="sep"></div>
+        <button class="f-btn easy" onclick="applyFilter('easy',this)">🟢 Łatwe</button>
+        <button class="f-btn med"  onclick="applyFilter('medium',this)">🟡 Średnie</button>
+        <button class="f-btn hard" onclick="applyFilter('hard',this)">🔴 Trudne</button>
+        <div class="sep"></div>
+        <button class="f-btn" onclick="applyFilter('algebra',this)">Algebra</button>
+        <button class="f-btn" onclick="applyFilter('geometria',this)">Geometria</button>
+        <button class="f-btn" onclick="applyFilter('procenty',this)">Procenty</button>
+        <button class="f-btn" onclick="applyFilter('ciagi',this)">Ciągi</button>
+        <button class="f-btn" onclick="applyFilter('logika',this)">Logika</button>
+        <button class="f-btn" onclick="applyFilter('delta',this)">Δ Kwadratowa</button>
+    </div>
+
+    <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:var(--r-md);padding:16px 20px;margin-bottom:36px;font-family:var(--font-code);font-size:0.8rem;color:var(--muted-hi);line-height:1.9">
+        Wpisz wynik liczbowy i wciśnij Enter lub kliknij poza pole. &nbsp;<span style="color:var(--green)">✓ Poprawna odpowiedź</span> blokuje zadanie i przyznaje +10 EXP. &nbsp;<span style="color:var(--red)">✗ Błąd</span> zwiększa licznik. Po 3 błędach pojawia się podpowiedź.
+    </div>
+
+    <div class="grid" id="taskGrid" style="gap:16px"></div>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+    Projekt edukacyjny — <b>ZYMATH SINGULARITY v2</b><br>
+    Szkoła Podstawowa nr 149 im. Marszałka Józefa Piłsudskiego w Krakowie.<br>
+    Autor: <b>5Simoon</b> &nbsp;·&nbsp; Rok szkolny 2025/2026 &nbsp;·&nbsp; Wszelkie prawa zastrzeżone © 2026<br>
+    <a href="https://sp149krakow.edugle.pl" target="_blank" rel="noopener noreferrer">sp149krakow.edugle.pl</a>
+    &nbsp;·&nbsp; <a href="https://sp149.krakow.pl" target="_blank" rel="noopener noreferrer">sp149.krakow.pl</a>
+    <div class="fw">⚠ Zaprojektowane dla wysokich rozdzielczości. Na urządzeniach mobilnych część modułów działa ograniczeniu.</div>
+</footer>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════
+   1. INIT
+═══════════════════════════════════════════════════════════ */
+lucide.createIcons();
+
+// Floating doodle symbols
+(function spawnDoodles() {
+    const symbols = ['∑','∫','π','√','∞','Δ','∂','∇','∈','∉','⊂','⊃','∩','∪','α','β','γ','λ','θ','φ','ω','∀','∃','≠','≈','≤','≥','∝','±','÷','×'];
+    const layer = document.getElementById('doodle');
+    for (let i = 0; i < 22; i++) {
+        const el = document.createElement('span');
+        el.className = 'dk';
+        el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        el.style.cssText = `left:${Math.random()*100}%;font-size:${Math.random()*16+10}px;animation-duration:${Math.random()*18+14}s;animation-delay:-${Math.random()*20}s;`;
+        layer.appendChild(el);
+    }
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   2. SPOTLIGHT GLOW
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('pointermove', (e) => {
+    for (const card of document.querySelectorAll('.card')) {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+        card.style.setProperty('--my', `${e.clientY - r.top}px`);
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   3. TABS
+═══════════════════════════════════════════════════════════ */
+function showTab(id, btn) {
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nb').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active'); btn.setAttribute('aria-current', 'page');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (id === 'kalkulatory') setTimeout(drawGraph, 200);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   4. EASTER EGG
+═══════════════════════════════════════════════════════════ */
+let eggCount = 0;
+function easterEgg() {
+    eggCount++;
+    if (eggCount % 3 === 0) {
+        document.body.style.filter = 'invert(1) hue-rotate(180deg) contrast(1.4)';
+        setTimeout(() => document.body.style.filter = 'none', 1800);
+    } else {
+        document.body.style.transform = `rotate(${(Math.random()-0.5)*6}deg)`;
+        setTimeout(() => document.body.style.transform = 'none', 400);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   5. SAFE MATH EVALUATOR (replaces eval)
+═══════════════════════════════════════════════════════════ */
+function safeMathEval(expr, xVal) {
+    if (typeof expr !== 'string' || expr.length > 300) throw new Error('Invalid expression');
+    const forbidden = /\b(window|document|self|globalThis|top|parent|frames|location|history|navigator|fetch|XMLHttpRequest|WebSocket|import|require|eval|Function|process|__proto__|prototype|constructor|Reflect|Proxy|Symbol|alert|confirm|prompt|console|localStorage|sessionStorage|cookie|Worker)\b/i;
+    if (forbidden.test(expr)) throw new Error('Forbidden identifier');
+    const fn = new Function('x', 'Math', `"use strict";
+        const {sin,cos,tan,asin,acos,atan,atan2,sqrt,abs,pow,log,log2,log10,
+               floor,ceil,round,min,max,sign,cbrt,exp,sinh,cosh,tanh,
+               PI,E,SQRT2,hypot,trunc} = Math;
+        return (${expr});`);
+    return fn(xVal, Math);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   6. GRAPH ENGINE v3.1 — zoom, pan, 3 functions, tick labels
+═══════════════════════════════════════════════════════════ */
+const gCanvas = document.getElementById('gCanvas');
+const gCtx = gCanvas ? gCanvas.getContext('2d') : null;
+
+// Resize canvas to actual CSS size
+function resizeCanvas() {
+    if (!gCanvas) return;
+    const rect = gCanvas.getBoundingClientRect();
+    gCanvas.width = rect.width * devicePixelRatio;
+    gCanvas.height = rect.height * devicePixelRatio;
+    gCtx.scale(devicePixelRatio, devicePixelRatio);
+    drawGraph();
+}
+window.addEventListener('resize', resizeCanvas);
+
+const gs = { scale: 45, ox: 0, oy: 0, drag: false, lx: 0, ly: 0 };
+const COLORS = ['#ff003c', '#00d4ff', '#fbbf24'];
+
+if (gCanvas) {
+    gCanvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const f = e.deltaY < 0 ? 1.12 : 0.89;
+        gs.scale = Math.max(8, Math.min(220, gs.scale * f));
+        document.getElementById('gScale').value = gs.scale;
+        drawGraph();
+    }, { passive: false });
+
+    gCanvas.addEventListener('pointerdown', e => {
+        gs.drag = true; gs.lx = e.clientX; gs.ly = e.clientY;
+        gCanvas.setPointerCapture(e.pointerId);
+        gCanvas.style.cursor = 'grabbing';
+    });
+    gCanvas.addEventListener('pointermove', e => {
+        if (gs.drag) {
+            gs.ox += e.clientX - gs.lx;
+            gs.oy += e.clientY - gs.ly;
+            gs.lx = e.clientX; gs.ly = e.clientY;
+            drawGraph();
+        }
+        // show coords
+        const r = gCanvas.getBoundingClientRect();
+        const cssW = r.width, cssH = r.height;
+        const mx = cssW / 2 + gs.ox, my = cssH / 2 + gs.oy;
+        const xi = ((e.clientX - r.left) - mx) / gs.scale;
+        const yi = -(((e.clientY - r.top) - my) / gs.scale);
+        const el = document.getElementById('gCoords');
+        el.textContent = '';
+        el.append('x: ', Object.assign(document.createElement('span'), { textContent: xi.toFixed(3), style: 'color:#fff' }), '  |  y: ', Object.assign(document.createElement('span'), { textContent: yi.toFixed(3), style: 'color:#fff' }));
+    });
+    gCanvas.addEventListener('pointerup', () => { gs.drag = false; gCanvas.style.cursor = 'crosshair'; });
+    gCanvas.addEventListener('pointerleave', () => { gs.drag = false; gCanvas.style.cursor = 'crosshair'; });
+}
+
+function resetGraph() {
+    gs.ox = 0; gs.oy = 0; gs.scale = 45;
+    document.getElementById('gScale').value = 45;
+    drawGraph();
+}
+
+function drawGraph() {
+    if (!gCanvas || !gCtx) return;
+    // sync scale from slider if not zoomed
+    const sliderScale = parseFloat(document.getElementById('gScale').value) || 45;
+    if (!gs.drag) gs.scale = sliderScale;
+
+    const W = gCanvas.width / devicePixelRatio;
+    const H = gCanvas.height / devicePixelRatio;
+    const sc = gs.scale;
+    const ox = W / 2 + gs.ox;
+    const oy = H / 2 + gs.oy;
+
+    gCtx.clearRect(0, 0, W, H);
+    gCtx.fillStyle = '#000'; gCtx.fillRect(0, 0, W, H);
+
+    // minor grid
+    gCtx.strokeStyle = 'rgba(255,255,255,0.04)'; gCtx.lineWidth = 1;
+    const step = sc;
+    for (let x = (ox % step); x < W; x += step) { gCtx.beginPath(); gCtx.moveTo(x, 0); gCtx.lineTo(x, H); gCtx.stroke(); }
+    for (let y = (oy % step); y < H; y += step) { gCtx.beginPath(); gCtx.moveTo(0, y); gCtx.lineTo(W, y); gCtx.stroke(); }
+
+    // axes
+    gCtx.strokeStyle = 'rgba(255,255,255,0.25)'; gCtx.lineWidth = 1.5;
+    gCtx.beginPath(); gCtx.moveTo(0, oy); gCtx.lineTo(W, oy); gCtx.stroke();
+    gCtx.beginPath(); gCtx.moveTo(ox, 0); gCtx.lineTo(ox, H); gCtx.stroke();
+
+    // tick marks + labels
+    gCtx.fillStyle = 'rgba(255,255,255,0.45)';
+    gCtx.font = `${Math.max(9, Math.min(12, sc * 0.22))}px 'Google Sans Code', monospace`;
+    gCtx.textAlign = 'center';
+    const xStart = Math.ceil(-ox / sc), xEnd = Math.floor((W - ox) / sc);
+    for (let n = xStart; n <= xEnd; n++) {
+        if (n === 0) continue;
+        const px = ox + n * sc;
+        gCtx.strokeStyle = 'rgba(255,255,255,0.2)'; gCtx.lineWidth = 1;
+        gCtx.beginPath(); gCtx.moveTo(px, oy - 4); gCtx.lineTo(px, oy + 4); gCtx.stroke();
+        if (sc > 20) gCtx.fillText(n, px, oy + 16);
+    }
+    gCtx.textAlign = 'right';
+    const yStart = Math.ceil((oy - H) / sc), yEnd = Math.floor(oy / sc);
+    for (let n = yStart; n <= yEnd; n++) {
+        if (n === 0) continue;
+        const py = oy - n * sc;
+        gCtx.strokeStyle = 'rgba(255,255,255,0.2)'; gCtx.lineWidth = 1;
+        gCtx.beginPath(); gCtx.moveTo(ox - 4, py); gCtx.lineTo(ox + 4, py); gCtx.stroke();
+        if (sc > 20) gCtx.fillText(n, ox - 8, py + 4);
+    }
+
+    // plot functions
+    const fns = ['fn1','fn2','fn3'].map(id => document.getElementById(id).value.trim()).filter(Boolean);
+    fns.forEach((expr, idx) => {
+        let compiled;
+        try { safeMathEval(expr, 0); compiled = (x) => safeMathEval(expr, x); }
+        catch(e) {
+            gCtx.fillStyle = COLORS[idx]; gCtx.font = '12px monospace';
+            gCtx.fillText(`f${idx+1}: ${e.message}`, W/2, 20 + idx*18);
+            return;
+        }
+        gCtx.strokeStyle = COLORS[idx]; gCtx.lineWidth = 2.5; gCtx.lineJoin = 'round';
+        gCtx.shadowColor = COLORS[idx]; gCtx.shadowBlur = 6;
+        gCtx.beginPath();
+        let first = true;
+        for (let px = 0; px < W; px++) {
+            const x = (px - ox) / sc;
+            try {
+                const y = compiled(x);
+                if (!isFinite(y) || isNaN(y)) { first = true; continue; }
+                const py = oy - y * sc;
+                if (Math.abs(py - (oy - compiled((px-1-ox)/sc) * sc)) > H * 2) { first = true; }
+                if (first) { gCtx.moveTo(px, py); first = false; }
+                else gCtx.lineTo(px, py);
+            } catch { first = true; }
+        }
+        gCtx.stroke();
+        gCtx.shadowBlur = 0;
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   7. CALCULATORS
+═══════════════════════════════════════════════════════════ */
+
+// Quadratic analyzer
+function calcQuad() {
+    const a = parseFloat(document.getElementById('qa').value);
+    const b = parseFloat(document.getElementById('qb').value);
+    const c = parseFloat(document.getElementById('qc').value);
+    const res = document.getElementById('quadRes');
+    if ([a,b,c].some(isNaN)) { res.style.color = 'var(--muted)'; res.textContent = 'Oczekiwanie na parametry…'; return; }
+    if (a === 0) { res.innerHTML = '<span style="color:var(--red)">Współczynnik a ≠ 0 dla paraboli.</span>'; return; }
+    const D = b*b - 4*a*c, p = -b/(2*a), q = -D/(4*a);
+    let html = `<div style="color:var(--red);font-size:1.6rem;font-family:var(--font-display);font-weight:800;margin-bottom:8px">Δ = ${D.toFixed(4)}</div>`;
+    html += `<div style="margin-bottom:6px;color:var(--muted-hi)">Wierzchołek: W(${p.toFixed(4)}, ${q.toFixed(4)}) &nbsp;|&nbsp; Oś symetrii: x = ${p.toFixed(4)}</div>`;
+    if (D > 0) html += `<div style="color:#fff">x₁ = ${((-b-Math.sqrt(D))/(2*a)).toFixed(4)} &nbsp;&nbsp; x₂ = ${((-b+Math.sqrt(D))/(2*a)).toFixed(4)}</div>`;
+    else if (D === 0) html += `<div style="color:#fff">Podwójny pierwiastek: x₀ = ${p.toFixed(4)}</div>`;
+    else html += `<div style="color:var(--muted)">Brak pierwiastków rzeczywistych (Δ &lt; 0)</div>`;
+    html += `<div style="color:var(--muted);font-size:0.78rem;margin-top:8px">Postać wierz.: f(x) = ${a}(x${p >= 0 ? '-':'+'} ${Math.abs(p).toFixed(3)})² ${q >= 0 ? '+':'-'} ${Math.abs(q).toFixed(3)}</div>`;
+    res.innerHTML = html;
+}
+
+// Linear system 2x2 (Cramer's rule)
+function calcSystem() {
+    const g = id => parseFloat(document.getElementById(id).value);
+    const a1=g('s_a1'),b1=g('s_b1'),c1=g('s_c1'),a2=g('s_a2'),b2=g('s_b2'),c2=g('s_c2');
+    const res = document.getElementById('sysRes');
+    if ([a1,b1,c1,a2,b2,c2].some(isNaN)) { res.style.color='var(--muted)'; res.textContent='Podaj wszystkie współczynniki.'; return; }
+    const D = a1*b2 - a2*b1;
+    if (D === 0) {
+        res.innerHTML = '<span style="color:var(--yellow)">Wyznacznik główny = 0 — układ sprzeczny lub nieokreślony.</span>';
+    } else {
+        const x = (c1*b2 - c2*b1)/D, y = (a1*c2 - a2*c1)/D;
+        res.innerHTML = `<div style="font-size:1.4rem;font-weight:800;color:var(--red);margin-bottom:6px">x = ${x.toFixed(4)} &nbsp;&nbsp; y = ${y.toFixed(4)}</div><div style="color:var(--muted);font-size:0.8rem">Wyznacznik D = ${D}</div>`;
+    }
+}
+
+// Trig calculator
+function switchTrig(id, btn) {
+    document.querySelectorAll('#trig-fn,#trig-tri').forEach(p => p.classList.remove('on'));
+    document.getElementById('trig-' + id).classList.add('on');
+    btn.closest('.tab-row').querySelectorAll('.tb-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+}
+function calcTrig() {
+    let val = parseFloat(document.getElementById('trigVal').value);
+    const unit = document.getElementById('trigUnit').value;
+    if (isNaN(val)) return;
+    if (unit === '°') val = val * Math.PI / 180;
+    const set = (id, v) => { document.getElementById(id).textContent = isFinite(v) ? v.toFixed(6) : '—'; };
+    set('tr-sin', Math.sin(val)); set('tr-cos', Math.cos(val));
+    const t = Math.tan(val); set('tr-tan', Math.abs(Math.cos(val)) < 1e-10 ? NaN : t);
+    set('tr-cot', Math.abs(Math.sin(val)) < 1e-10 ? NaN : 1/t);
+}
+function calcTriangle() {
+    const ang = parseFloat(document.getElementById('tri-angle').value);
+    const hyp = parseFloat(document.getElementById('tri-hyp').value);
+    if (isNaN(ang) || isNaN(hyp)) return;
+    const a = ang * Math.PI / 180;
+    const sideA = hyp * Math.sin(a), sideB = hyp * Math.cos(a);
+    document.getElementById('tri-a').textContent = sideA.toFixed(4) + ' (naprzeciwko α)';
+    document.getElementById('tri-b').textContent = sideB.toFixed(4);
+    document.getElementById('tri-p').textContent = (0.5 * sideA * sideB).toFixed(4);
+}
+
+// NWD / NWW / Prime
+function switchNwd(id, btn) {
+    ['nwd-panel','prime-panel'].forEach(p => document.getElementById(p).classList.remove('on'));
+    document.getElementById(id+'-panel').classList.add('on');
+    btn.closest('.tab-row').querySelectorAll('.tb-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+}
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+function calcNwd() {
+    let a = Math.abs(parseInt(document.getElementById('na').value));
+    let b = Math.abs(parseInt(document.getElementById('nb').value));
+    if (!a || !b) { document.getElementById('r-nwd').textContent='—'; document.getElementById('r-nww').textContent='—'; return; }
+    const d = gcd(a, b);
+    document.getElementById('r-nwd').textContent = d;
+    document.getElementById('r-nww').textContent = (a * b) / d;
+}
+function calcPrime() {
+    let n = parseInt(document.getElementById('primeN').value);
+    const res = document.getElementById('primeRes');
+    if (isNaN(n) || n < 2 || n > 999999) { res.textContent = 'Podaj liczbę 2–999999.'; return; }
+    const orig = n; const factors = {};
+    for (let d = 2; d * d <= n; d++) { while (n % d === 0) { factors[d] = (factors[d] || 0) + 1; n /= d; } }
+    if (n > 1) factors[n] = (factors[n] || 0) + 1;
+    const parts = Object.entries(factors).map(([p, e]) => e > 1 ? `${p}^${e}` : p).join(' × ');
+    const isPrime = Object.keys(factors).length === 1 && Object.values(factors)[0] === 1;
+    res.innerHTML = `<div style="color:var(--text);font-size:1.1rem;margin-bottom:6px">${orig} = ${parts}</div><div style="color:var(--muted);font-size:0.8rem">${isPrime ? '✓ Liczba pierwsza' : `Czynniki: ${Object.keys(factors).join(', ')}`}</div>`;
+}
+
+// Statistics — enhanced
+function calcStats() {
+    const v = document.getElementById('statIn').value.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+    document.getElementById('s-n').textContent = v.length;
+    if (!v.length) { ['s-mean','s-med','s-mode','s-std','s-range'].forEach(id => document.getElementById(id).textContent = '—'); return; }
+    const mean = v.reduce((a,b)=>a+b,0)/v.length;
+    document.getElementById('s-mean').textContent = mean.toFixed(4);
+    const sorted = [...v].sort((a,b)=>a-b);
+    const mid = Math.floor(sorted.length/2);
+    document.getElementById('s-med').textContent = sorted.length%2 ? sorted[mid].toFixed(4) : ((sorted[mid-1]+sorted[mid])/2).toFixed(4);
+    // mode
+    const freq = {}; v.forEach(x => freq[x] = (freq[x]||0)+1);
+    const maxFreq = Math.max(...Object.values(freq));
+    const modes = Object.entries(freq).filter(([,f])=>f===maxFreq).map(([v])=>v);
+    document.getElementById('s-mode').textContent = maxFreq > 1 ? modes.join(', ') : 'brak';
+    // sample std dev
+    const variance = v.reduce((sum,x)=>sum+(x-mean)**2,0)/(v.length-1);
+    document.getElementById('s-std').textContent = Math.sqrt(variance).toFixed(4);
+    document.getElementById('s-range').textContent = (sorted[sorted.length-1]-sorted[0]).toFixed(4);
+}
+
+// Number systems
+function decToRoman(n){if(n<=0||n>=4000)return'ERR';const l={M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};let r='';for(let k in l){while(n>=l[k]){r+=k;n-=l[k];}}return r;}
+function romanToDec(s){const m={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};let n=0;for(let i=0;i<s.length;i++){const v1=m[s[i]],v2=m[s[i+1]];if(v2>v1){n+=v2-v1;i++;}else n+=v1;}return n;}
+function convSys(from) {
+    const val = document.getElementById('s-'+from).value.trim(); if(!val) return;
+    let d;
+    try {
+        if(from==='dec') d=parseInt(val,10);
+        else if(from==='bin') d=parseInt(val,2);
+        else if(from==='oct') d=parseInt(val,8);
+        else if(from==='hex') d=parseInt(val,16);
+        else if(from==='rom') d=romanToDec(val.toUpperCase());
+        if(isNaN(d)||d<0) return;
+        if(from!=='dec') document.getElementById('s-dec').value=d;
+        if(from!=='bin') document.getElementById('s-bin').value=d.toString(2);
+        if(from!=='oct') document.getElementById('s-oct').value=d.toString(8);
+        if(from!=='hex') document.getElementById('s-hex').value=d.toString(16).toUpperCase();
+        if(from!=='rom') document.getElementById('s-rom').value=decToRoman(d);
+    } catch(e){}
+}
+
+// Tab switchers
+function switchDesmos(mode, btn) {
+    btn.closest('.tab-row').querySelectorAll('.tb-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    if (window._desmosCalc) { window._desmosCalc.destroy(); window._desmosCalc = null; }
+    initDesmosMode(mode);
+}
+function switchPhys(id, btn) {
+    ['p-newton','p-kinem'].forEach(p => document.getElementById(p).classList.remove('on'));
+    document.getElementById('p-'+id).classList.add('on');
+    btn.closest('.tab-row').querySelectorAll('.tb-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+}
+function switchFin(id, btn) {
+    ['f-cap','f-loan'].forEach(p => document.getElementById(p).classList.remove('on'));
+    document.getElementById('f-'+id).classList.add('on');
+    btn.closest('.tab-row').querySelectorAll('.tb-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+}
+function switchGeo(id, btn) {
+    document.querySelectorAll('[id^="geo-"]').forEach(p => p.classList.remove('on'));
+    document.getElementById('geo-'+id).classList.add('on');
+    btn.closest('.tab-row').querySelectorAll('.tb-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+}
+
+// Physics calculators
+function calcNewton() {
+    const m=parseFloat(document.getElementById('ph-m').value), a=parseFloat(document.getElementById('ph-a').value);
+    document.getElementById('ph-res').textContent = (!isNaN(m)&&!isNaN(a)) ? `${(m*a).toFixed(4)} N` : '0.00 N';
+}
+function calcKinem() {
+    const v0=parseFloat(document.getElementById('k-v0').value);
+    const a=parseFloat(document.getElementById('k-a').value);
+    const t=parseFloat(document.getElementById('k-t').value);
+    if([v0,a,t].some(isNaN)) return;
+    document.getElementById('k-v').textContent = (v0+a*t).toFixed(4)+' m/s';
+    document.getElementById('k-s').textContent = (v0*t+0.5*a*t*t).toFixed(4)+' m';
+}
+
+// Finance
+function calcFin() {
+    const k=parseFloat(document.getElementById('fk').value), p=parseFloat(document.getElementById('fp').value), n=parseFloat(document.getElementById('fn2').value);
+    if([k,p,n].some(isNaN)) return;
+    const total = k*Math.pow(1+p/100,n);
+    document.getElementById('f-total').textContent = total.toFixed(2)+' PLN';
+    document.getElementById('f-profit').textContent = (total-k).toFixed(2)+' PLN';
+}
+function calcLoan() {
+    const P=parseFloat(document.getElementById('l-P').value), r=parseFloat(document.getElementById('l-r').value)/100/12, n=parseFloat(document.getElementById('l-n').value);
+    if([P,r,n].some(isNaN)||r<=0) return;
+    const rate = P*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+    document.getElementById('l-rate').textContent = rate.toFixed(2)+' PLN';
+    document.getElementById('l-total').textContent = (rate*n).toFixed(2)+' PLN';
+}
+
+// Unit converters
+function convDist(f){const v=parseFloat(document.getElementById('u-'+f).value);if(isNaN(v))return;const m=f==='m'?v:f==='km'?v*1000:f==='cm'?v/100:v*0.0254;if(f!=='km')document.getElementById('u-km').value=(m/1000).toFixed(6);if(f!=='m')document.getElementById('u-m').value=m.toFixed(6);if(f!=='cm')document.getElementById('u-cm').value=(m*100).toFixed(4);if(f!=='in')document.getElementById('u-in').value=(m*39.3701).toFixed(4);}
+function convMass(f){const v=parseFloat(document.getElementById('u-'+f).value);if(isNaN(v))return;const kg=f==='kg'?v:f==='g'?v/1000:v*0.453592;if(f!=='kg')document.getElementById('u-kg').value=kg.toFixed(6);if(f!=='g')document.getElementById('u-g').value=(kg*1000).toFixed(4);if(f!=='lb')document.getElementById('u-lb').value=(kg*2.20462).toFixed(4);}
+function convTemp(f){const v=parseFloat(document.getElementById('u-'+f).value);if(isNaN(v))return;const c=f==='c'?v:f==='f'?(v-32)*5/9:v-273.15;if(f!=='c')document.getElementById('u-c').value=c.toFixed(4);if(f!=='f')document.getElementById('u-f').value=(c*9/5+32).toFixed(4);if(f!=='k')document.getElementById('u-k').value=(c+273.15).toFixed(4);}
+function convData(f){const v=parseFloat(document.getElementById('u-'+f).value);if(isNaN(v))return;const mb=f==='mb'?v:f==='gb'?v*1024:v*1048576;if(f!=='mb')document.getElementById('u-mb').value=mb.toFixed(2);if(f!=='gb')document.getElementById('u-gb').value=(mb/1024).toFixed(6);if(f!=='tb')document.getElementById('u-tb').value=(mb/1048576).toFixed(8);}
+
+// Geometry calculator
+function calcGeo(shape) {
+    const g = id => parseFloat(document.getElementById(id).value);
+    const fmt = n => isNaN(n)||!isFinite(n) ? '—' : n.toFixed(4);
+    if (shape==='tri') {
+        const a=g('g-ta'), h=g('g-th'), c=g('g-tc');
+        document.getElementById('geo-tri-p').textContent = fmt(0.5*a*h);
+        document.getElementById('geo-tri-o').textContent = isNaN(c) ? '(podaj bok c)' : fmt(a+2*c);
+    } else if (shape==='cir') {
+        const r=g('g-cr');
+        document.getElementById('geo-cir-p').textContent = fmt(Math.PI*r*r);
+        document.getElementById('geo-cir-c').textContent = fmt(2*Math.PI*r);
+    } else if (shape==='cyl') {
+        const r=g('g-cylr'), h=g('g-cylh');
+        document.getElementById('geo-cyl-v').textContent = fmt(Math.PI*r*r*h);
+        document.getElementById('geo-cyl-pc').textContent = fmt(2*Math.PI*r*(r+h));
+    } else if (shape==='cone') {
+        const r=g('g-conr'), h=g('g-conh'), l=Math.sqrt(r*r+h*h);
+        document.getElementById('geo-cone-v').textContent = fmt(Math.PI*r*r*h/3);
+        document.getElementById('geo-cone-l').textContent = fmt(l);
+        document.getElementById('geo-cone-pc').textContent = fmt(Math.PI*r*(r+l));
+    } else if (shape==='sph') {
+        const r=g('g-spr');
+        document.getElementById('geo-sph-v').textContent = fmt(4/3*Math.PI*r*r*r);
+        document.getElementById('geo-sph-pc').textContent = fmt(4*Math.PI*r*r);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   8. DESMOS — dynamic loader
+═══════════════════════════════════════════════════════════ */
+let _desmosKey = null;
+let _desmosMode = 'graph';
+
+async function loadDesmosAPI() {
+    if (typeof Desmos !== 'undefined') return;
+    const msg = document.getElementById('desmosMsg');
+    msg.style.display = 'block';
+    try {
+        const res = await fetch('/api/config');
+        if (!res.ok) throw new Error('Config HTTP ' + res.status);
+        const { desmosKey } = await res.json();
+        if (!desmosKey) throw new Error('No key');
+        _desmosKey = desmosKey;
+        await new Promise((ok, fail) => {
+            const s = document.createElement('script');
+            s.src = `https://www.desmos.com/api/v1.11/calculator.js?apiKey=${encodeURIComponent(desmosKey)}`;
+            s.onload = ok; s.onerror = () => fail(new Error('Script load failed'));
+            document.head.appendChild(s);
+        });
+        msg.style.display = 'none';
+        initDesmosMode(_desmosMode);
+    } catch(e) {
+        msg.textContent = '⚠ Desmos API niedostępne — sprawdź zmienną DESMOS_API w Vercel. (' + e.message + ')';
+    }
+}
+
+function initDesmosMode(mode) {
+    _desmosMode = mode;
+    const elt = document.getElementById('desmosEl');
+    if (!elt || typeof Desmos === 'undefined') return;
+    if (window._desmosCalc) { window._desmosCalc.destroy(); window._desmosCalc = null; }
+    const opts = { keypad: true, expressions: true, settingsMenu: true, zoomButtons: true };
+    if (mode === 'graph')  window._desmosCalc = Desmos.GraphingCalculator(elt, opts);
+    else if (mode === 'sci') window._desmosCalc = Desmos.ScientificCalculator(elt, opts);
+    else if (mode === 'geo') window._desmosCalc = Desmos.Geometry(elt, opts);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   9. ANSWER HASHING (SHA-256 with per-session salt)
+═══════════════════════════════════════════════════════════ */
+const SALT = crypto.getRandomValues(new Uint8Array(16)).reduce((h,b) => h + b.toString(16).padStart(2,'0'), '');
+
+async function hashAnswer(val) {
+    const data = SALT + String(Math.round(val * 100));
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   10. TASK DATA (150 tasks — Easy 50 / Medium 60 / Hard 40)
+═══════════════════════════════════════════════════════════ */
+const R = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+
+const TASKS = [];
+
+// ── EASY (50) ─────────────────────────────────────────────
+// Linear equations
+for (let i=0; i<20; i++) {
+    const a=R(2,9), b=R(1,25), x=R(1,20);
+    TASKS.push({ diff:'easy', cat:'algebra', q:`Wyznacz x: <code>${a}x + ${b} = ${a*x+b}</code>`, ans:x, hint:`Odejmij ${b} od obu stron, następnie podziel przez ${a}.` });
+}
+// Percentages
+for (let i=0; i<15; i++) {
+    const p=R(1,9)*10, n=R(2,20)*10;
+    TASKS.push({ diff:'easy', cat:'procenty', q:`Oblicz: <code>${p}% z liczby ${n}</code>`, ans:(p/100)*n, hint:`Podziel ${p} przez 100, a następnie pomnóż przez ${n}.` });
+}
+// Rectangle area / perimeter
+for (let i=0; i<10; i++) {
+    const a=R(2,15), b=R(2,15);
+    TASKS.push({ diff:'easy', cat:'geometria', q:`Oblicz pole prostokąta: <code>a = ${a}, b = ${b}</code>`, ans:a*b, hint:`Pole prostokąta = a × b.` });
+}
+// Arithmetic sequence next term
+for (let i=0; i<5; i++) {
+    const a1=R(1,10), r=R(1,6);
+    TASKS.push({ diff:'easy', cat:'ciagi', q:`Podaj następny wyraz ciągu: <code>${a1}, ${a1+r}, ${a1+2*r}, ${a1+3*r}, ?</code>`, ans:a1+4*r, hint:`To ciąg arytmetyczny. Różnica = ${r}.` });
+}
+
+// ── MEDIUM (60) ────────────────────────────────────────────
+// Quadratic discriminant
+for (let i=0; i<15; i++) {
+    const b=R(2,8), c=R(-6,6); const cc = c===0?1:c;
+    TASKS.push({ diff:'medium', cat:'delta', q:`Oblicz wyróżnik Δ: <code>y = x² + ${b}x ${cc>0?'+'+cc:cc}</code>`, ans:b*b-4*cc, hint:`Δ = b² − 4ac. Tutaj a=1, b=${b}, c=${cc}.` });
+}
+// Quadratic roots (nice ones)
+for (let i=0; i<10; i++) {
+    const x1=R(1,8), x2=R(-8,0);
+    const b=-(x1+x2), c=x1*x2;
+    TASKS.push({ diff:'medium', cat:'delta', q:`Znajdź większy pierwiastek: <code>x² ${b>=0?'+'+b:b}x ${c>=0?'+'+c:c} = 0</code>`, ans:Math.max(x1,x2), hint:`Policz Δ = b²−4ac, a następnie x = (−b+√Δ)/2.` });
+}
+// Geometry — circle
+for (let i=0; i<10; i++) {
+    const r=R(2,12);
+    TASKS.push({ diff:'medium', cat:'geometria', q:`Oblicz pole koła (zaokrąglij do 2 miejsc po przecinku): <code>r = ${r}</code>`, ans:parseFloat((Math.PI*r*r).toFixed(2)), hint:`P = πr². Użyj π ≈ 3.14159.` });
+}
+// Arithmetic sequence sum
+for (let i=0; i<10; i++) {
+    const a1=R(1,5), r=R(1,4), n=R(5,12);
+    const an = a1+(n-1)*r;
+    TASKS.push({ diff:'medium', cat:'ciagi', q:`Suma ${n} pierwszych wyrazów ciągu arytm.: <code>a₁=${a1}, r=${r}</code>`, ans:(a1+an)*n/2, hint:`Sₙ = (a₁+aₙ)·n/2. Najpierw oblicz aₙ = a₁+(n-1)r.` });
+}
+// Combinations C(n,2)
+for (let i=0; i<8; i++) {
+    const n=R(4,10);
+    TASKS.push({ diff:'medium', cat:'logika', q:`Ile 2-elementowych podzbiorów można wybrać z ${n}-elementowego zbioru?`, ans:n*(n-1)/2, hint:`C(n,2) = n!/(2!(n−2)!) = n(n−1)/2.` });
+}
+// Geometric sequence term
+for (let i=0; i<7; i++) {
+    const a1=R(1,4), q=R(2,3), n=R(4,6);
+    TASKS.push({ diff:'medium', cat:'ciagi', q:`Oblicz ${n}-ty wyraz ciągu geometrycznego: <code>a₁=${a1}, q=${q}</code>`, ans:a1*Math.pow(q,n-1), hint:`aₙ = a₁ · qⁿ⁻¹.` });
+}
+
+// ── HARD (40) ──────────────────────────────────────────────
+// Pythagorean theorem find hypotenuse
+const pyth_triples = [[3,4,5],[5,12,13],[8,15,17],[7,24,25],[9,40,41]];
+pyth_triples.forEach(([a,b,c]) => {
+    TASKS.push({ diff:'hard', cat:'geometria', q:`Trójkąt prostokątny. Przyprostokątne: a=${a}, b=${b}. Oblicz przeciwprostokątną c.`, ans:c, hint:`Twierdzenie Pitagorasa: c² = a² + b². c = √(${a*a}+${b*b}).` });
+});
+// Sum of geometric series (infinite)
+[[2,0.5,4],[3,0.25,4],[6,0.5,12]].forEach(([a1,q,ans]) => {
+    TASKS.push({ diff:'hard', cat:'ciagi', q:`Oblicz sumę nieskończonego ciągu geometrycznego: <code>a₁=${a1}, q=${q}</code>`, ans, hint:`S∞ = a₁ / (1−q), bo |q| < 1.` });
+});
+// Volume of cone
+for (let i=0; i<6; i++) {
+    const r=R(2,6), h=R(3,9);
+    TASKS.push({ diff:'hard', cat:'geometria', q:`Objętość stożka (2 miejsca po przecinku): <code>r=${r}, h=${h}</code>`, ans:parseFloat((Math.PI*r*r*h/3).toFixed(2)), hint:`V = ⅓·π·r²·h.` });
+}
+// Logarithm calculation
+[[2,32,5],[3,81,4],[2,64,6],[5,125,3]].forEach(([base,arg,ans]) => {
+    TASKS.push({ diff:'hard', cat:'algebra', q:`Oblicz: <code>log<sub>${base}</sub>(${arg})</code>`, ans, hint:`log_${base}(${arg}) = x oznacza ${base}^x = ${arg}.` });
+});
+// Permutation P(n,k)
+[[5,2,20],[6,2,30],[4,3,24]].forEach(([n,k,ans]) => {
+    TASKS.push({ diff:'hard', cat:'logika', q:`Oblicz wariację V(${n},${k}) = ${n}!/(${n}−${k})!`, ans, hint:`V(n,k) = n·(n−1)·…·(n−k+1). Tu ${n}·${n-1} = ?` });
+});
+// Fill to 150 with mixed medium
+while (TASKS.length < 150) {
+    const types = ['algebra','delta','procenty','ciagi','geometria'];
+    const t = types[TASKS.length % 5];
+    if (t === 'algebra') {
+        const a=R(3,7),b=R(5,30),x=R(2,18);
+        TASKS.push({ diff:'medium', cat:'algebra', q:`Wyznacz x: <code>${a}x − ${b} = ${a*x-b}</code>`, ans:x, hint:`Dodaj ${b} do obu stron, podziel przez ${a}.` });
+    } else if (t === 'delta') {
+        const b=R(3,9), c=R(1,8);
+        TASKS.push({ diff:'medium', cat:'delta', q:`Δ dla: <code>y = 2x² + ${b}x + ${c}</code>`, ans:b*b-8*c, hint:`Δ = b²−4ac = ${b}²−4·2·${c}.` });
+    } else if (t === 'procenty') {
+        const base=R(100,500), pct=R(1,4)*5;
+        TASKS.push({ diff:'easy', cat:'procenty', q:`${pct}% z liczby ${base}`, ans:(pct/100)*base, hint:`Podziel ${pct} przez 100, pomnóż przez ${base}.` });
+    } else if (t === 'ciagi') {
+        const a1=R(2,8),r=R(2,5);
+        TASKS.push({ diff:'easy', cat:'ciagi', q:`5-ty wyraz: <code>${a1}, ${a1+r}, ${a1+2*r}, …</code>`, ans:a1+4*r, hint:`aₙ = a₁+(n−1)r.` });
+    } else {
+        const a=R(3,12), h=R(4,15);
+        TASKS.push({ diff:'easy', cat:'geometria', q:`Pole trójkąta: <code>a=${a}, h=${h}</code>`, ans:0.5*a*h, hint:`P = ½·a·h.` });
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   11. TASK RENDERING & VERIFICATION
+═══════════════════════════════════════════════════════════ */
+let score = 0, solved = 0;
+let activeFilter = 'all';
+
+async function buildTasks() {
+    const grid = document.getElementById('taskGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < TASKS.length; i++) {
+        const t = TASKS[i];
+        const hash = await hashAnswer(t.ans);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.diff = t.diff;
+        card.dataset.cat = t.cat;
+
+        const diffLabel = { easy:'🟢 Łatwe', medium:'🟡 Średnie', hard:'🔴 Trudne' }[t.diff];
+
+        card.innerHTML = `
+            <div class="card-border"></div>
+            <div class="ci">
+                <div class="task-badge ${t.diff}">${diffLabel} &nbsp;·&nbsp; ${t.cat.toUpperCase()}</div>
+                <div style="margin-bottom:18px;flex-grow:1;font-size:1rem;color:var(--muted-hi);line-height:1.75">#${i+1} — ${t.q}</div>
+                <input type="number" class="ti" placeholder="Twoja odpowiedź…"
+                       autocomplete="off"
+                       data-hash="${hash}"
+                       data-attempts="0"
+                       data-hint="${t.hint.replace(/"/g,'&quot;')}"
+                       onchange="checkAnswer(this)">
+                <div class="hint-box" id="hint-${i}"></div>
+            </div>`;
+        grid.appendChild(card);
+    }
+    lucide.createIcons();
+    applyFilter(activeFilter, null);
+}
+
+async function checkAnswer(input) {
+    if (input.disabled) return;
+    const val = parseFloat(input.value);
+    if (isNaN(val)) { input.className = 'ti'; return; }
+    const guessHash = await hashAnswer(val);
+    if (guessHash === input.dataset.hash) {
+        input.className = 'ti ok'; input.disabled = true;
+        score += 10; solved++;
+        document.getElementById('scoreBoard').textContent = score;
+        document.getElementById('solvedCount').textContent = solved;
+        document.getElementById('progressFill').style.width = (solved / 150 * 100).toFixed(1) + '%';
+        spawnConfetti(input);
+    } else {
+        input.className = 'ti bad';
+        const attempts = parseInt(input.dataset.attempts) + 1;
+        input.dataset.attempts = attempts;
+        if (attempts >= 3) {
+            const hintEl = input.parentElement.querySelector('.hint-box');
+            hintEl.textContent = '💡 ' + input.dataset.hint;
+            hintEl.classList.add('show');
+        }
+    }
+}
+
+function applyFilter(filter, btn) {
+    activeFilter = filter;
+    if (btn) {
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+    }
+    document.querySelectorAll('#taskGrid .card').forEach(card => {
+        const match = filter === 'all' || card.dataset.diff === filter || card.dataset.cat === filter;
+        card.style.display = match ? 'flex' : 'none';
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   12. CONFETTI (fixed physics)
+═══════════════════════════════════════════════════════════ */
+function spawnConfetti(anchor) {
+    const rect = anchor.getBoundingClientRect();
+    const colors = ['#ff003c','#ffffff','#00d4ff','#fbbf24','#10b981'];
+    for (let i = 0; i < 28; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-p';
+        const angle = Math.random() * Math.PI * 2;
+        const spd = Math.random() * 160 + 60;
+        let x = rect.left + rect.width/2, y = rect.top + rect.height/2;
+        let vx = Math.cos(angle)*spd, vy = Math.sin(angle)*spd - 190;
+        el.style.cssText = `left:${x}px;top:${y}px;background:${colors[i%colors.length]};width:${Math.random()*7+4}px;height:${Math.random()*7+4}px;`;
+        document.body.appendChild(el);
+        let last = performance.now(), elapsed = 0;
+        (function frame(now) {
+            const dt = Math.min((now-last)/1000, 0.05); last = now; elapsed += dt*1000;
+            if (elapsed >= 1400) { el.remove(); return; }
+            vy += 550 * dt; x += vx*dt; y += vy*dt;
+            el.style.left = x+'px'; el.style.top = y+'px';
+            el.style.opacity = String(1 - elapsed/1400);
+            requestAnimationFrame(frame);
+        })(performance.now());
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   13. STARTUP
+═══════════════════════════════════════════════════════════ */
+setTimeout(resizeCanvas, 100);
+buildTasks();
+loadDesmosAPI();
+</script>
+</body>
+</html>
