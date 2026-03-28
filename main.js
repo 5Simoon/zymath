@@ -2,35 +2,56 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════════
    ZYMATH AEGIS PROTOCOL - INTEGRATED FIREWALL v2.5
-   ═══════════════════════════════════════════════════════════ */((function() {
-    // 1. Blokada ramek (Clickjacking) - zawsze stabilne
+   ═══════════════════════════════════════════════════════════ *//* ═══════════════════════════════════════════════════════════
+   ZYMATH CORE ENGINE - STABLE SHIELD v3.0
+   ═══════════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Inicjalizacja ikon Lucide (Naprawia brakujące ikony)
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+
+    // 2. Cicha ochrona przed Clickjackingiem
     if (window.top !== window.self) {
         window.top.location = window.self.location;
     }
 
-    // 2. Ochrona przed XSS w polach tekstowych
+    // 3. Ochrona pól tekstowych (Anti-XSS)
     const xssPattern = /<script|javascript:|onerror|eval\(/gi;
-    document.addEventListener('input', (e) => {
+    document.body.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && xssPattern.test(e.target.value)) {
             e.target.value = "";
+            console.warn("Aegis: Zablokowano podejrzany wpis.");
         }
-    }, true);
+    });
 
-    // 3. Blokada prawego przycisku i skrótów (tylko desktop)
-    window.addEventListener('contextmenu', e => e.preventDefault());
-    window.addEventListener('keydown', e => {
-        if (e.ctrlKey && ['u', 's', 'i', 'j'].includes(e.key.toLowerCase())) {
+    // 4. Selektywna blokada (tylko najbardziej oczywiste próby podglądu)
+    window.addEventListener('keydown', (e) => {
+        // Blokujemy tylko F12 i Ctrl+U (Źródło strony)
+        if (e.key === 'F12' || (e.ctrlKey && e.key.toLowerCase() === 'u')) {
             e.preventDefault();
+            console.log("Aegis: Dostęp do narzędzi deweloperskich ograniczony.");
         }
     }, true);
 
-    // 4. Ciche sprawdzanie HTTPS
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        window.location.href = "https://" + window.location.hostname + window.location.pathname;
-    }
+    console.log("%c Zymath Singularity: System Ready ", "background: #10b981; color: #000; font-weight: bold;");
+});
 
-    console.log("Zymath Shield: Active & Stable");
-})();
+// Funkcja pomocnicza dla Twoich przycisków (showTab)
+window.showTab = function(tabId, element) {
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    // Pokaż wybraną
+    document.getElementById(tabId).classList.add('active');
+    
+    // Aktualizacja nawigacji
+    document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+    element.classList.add('active');
+    
+    // Przewiń na górę
+    window.scrollTo({top: 0, behavior: 'smooth'});
+};
 /* ═══════════════════════════════════════════════════════════
    1. INIT
 ═══════════════════════════════════════════════════════════ */
