@@ -1,0 +1,22 @@
+# Zymath Singularity — Security Policy
+# https://securitytxt.org
+
+Contact: mailto:security@zymath.vercel.app
+Preferred-Languages: pl, en
+Canonical: https://zymath.vercel.app/.well-known/security.txt
+Policy: https://zymath.vercel.app/SECURITY.md
+Acknowledgments: https://zymath.vercel.app/SECURITY.md
+
+# Scope: https://zymath.vercel.app
+# Out-of-scope: Third-party CDN libraries (Desmos, MathJax, Lucide)
+
+# How to report:
+# 1. Do NOT open a public GitHub issue for security vulnerabilities.
+# 2. Email the contact address above with:
+#    - Description of the vulnerability
+#    - Steps to reproduce
+#    - Potential impact assessment
+# 3. You will receive a response within 72 hours.
+# 4. Coordinated disclosure: please allow 30 days before public disclosure.
+
+Expires: 2027-01-01T00:00:00.000Z
