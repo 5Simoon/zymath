@@ -1698,6 +1698,43 @@ function spawnConfetti(anchor) {
         })(performance.now());
     }
 }
+    // Ta funkcja odpali się automatycznie, gdy Turnstile zweryfikuje użytkownika
+function onTurnstileSuccess(turnstileToken) {
+    // Wysyłamy token na nasz serwer Vercel
+    fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: turnstileToken })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.desmosKey) {
+            // Ukrywamy widget bezpieczeństwa
+            document.getElementById('security-wrapper').style.display = 'none';
+            
+            // Ładujemy Desmosa
+            const script = document.createElement('script');
+            script.src = `https://www.desmos.com/api/v1.11/calculator.js?apiKey=${data.desmosKey}`;
+            script.onload = () => {
+                var elt = document.getElementById('desmos-calculator');
+                if (elt) {
+                    var calculator = Desmos.GraphingCalculator(elt, {
+                        keypad: true,
+                        expressions: true,
+                        settingsMenu: true,
+                        zoomButtons: true,
+                        expressionsTopbar: true
+                    });
+                }
+            };
+            document.head.appendChild(script);
+        } else {
+            console.error("Błąd weryfikacji:", data.error);
+            alert("Nie udało się zweryfikować połączenia.");
+        }
+    })
+    .catch(err => console.error("Błąd sieci:", err));
+}
 
 /* ═══════════════════════════════════════════════════════════
    13. STARTUP
