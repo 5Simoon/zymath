@@ -3,89 +3,116 @@
 /* ═══════════════════════════════════════════════════════════
    ZYMATH AEGIS PROTOCOL - INTEGRATED FIREWALL v2.5
    ═══════════════════════════════════════════════════════════ */(function() {
+    (function() {
     const Aegis = {
+        status: {
+            isReady: false,
+            retries: 0,
+            isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        },
+        
         config: {
-            maxDebugTime: 500, // Zwiększone z 100 na 500ms (mniej fałszywych alarmów)
-            heartbeatInterval: 60000, // Raz na minutę wystarczy
-            checkInterval: 5000 // Sprawdzaj co 5 sekund, nie co 2
+            maxRetries: 5,
+            // Na telefonie dajemy więcej czasu na "oddech" procesora
+            debugThreshold: /Android|iPhone|iPad/i.test(navigator.userAgent) ? 1000 : 400,
+            interval: 5000
         },
 
-        init: function() {
-            // Uruchom sprawdzanie dopiero gdy strona jest w pełni gotowa
+        init() {
+            // Czekamy, aż DOM będzie stabilny
             if (document.readyState === 'complete') {
-                this.runSystems();
+                this.activate();
             } else {
-                window.addEventListener('load', () => this.runSystems());
+                window.addEventListener('load', () => this.activate());
             }
         },
 
-        runSystems: function() {
-            this.secureHeaders();
-            this.antiXSS();
+        activate() {
+            this.log("System Shield Initializing...");
             
-            // Dajemy stronie 2 sekundy "oddechu" przed włączeniem agresywnych skanerów
-            setTimeout(() => {
-                this.integrityCheck();
-                this.heartbeat();
-                
-                setInterval(() => {
-                    this.integrityCheck();
-                    this.devToolsTrap();
-                }, this.config.checkInterval);
-            }, 2000);
-        },
-
-        secureHeaders: function() {
+            // 1. Podstawowe blokady natychmiastowe
             if (window.top !== window.self) window.top.location = window.self.location;
+
+            // 2. Opóźniony start agresywnych skanerów (kluczowe dla mobile!)
+            setTimeout(() => {
+                this.status.isReady = true;
+                this.runCycle();
+                setInterval(() => this.runCycle(), this.config.interval);
+            }, 3000);
+
+            this.setupXSSShield();
+            this.setupKeyBlocker();
         },
 
-        integrityCheck: function() {
-            // Sprawdzaj tylko jeśli Desmos powinien już tam być
-            const criticalElements = ['trap-container']; 
-            criticalElements.forEach(id => {
-                if (!document.getElementById(id)) {
-                    console.warn("Aegis: Missing element " + id);
-                    // Nie zabijaj strony od razu, spróbuj go znaleźć w następnym cyklu
+        runCycle() {
+            if (!this.status.isReady) return;
+            
+            this.checkIntegrity();
+            this.checkDebugger();
+        },
+
+        checkIntegrity() {
+            // Sprawdzamy tylko nasz ukryty kontener - to wystarczy
+            const shield = document.getElementById('trap-container');
+            
+            if (!shield) {
+                this.status.retries++;
+                if (this.status.retries >= this.config.maxRetries) {
+                    this.terminate("Integrity Failure");
                 }
-            });
+            } else {
+                this.status.retries = 0; // Reset przy sukcesie
+            }
         },
 
-        antiXSS: function() {
-            const pattern = /<script|javascript:|onerror|eval\(/gi;
+        checkDebugger() {
+            const start = performance.now();
+            debugger; 
+            const end = performance.now();
+            
+            if (end - start > this.config.debugThreshold) {
+                this.log("Performance lag or inspection detected.");
+                // Na mobile tylko logujemy, na desktopie moglibyśmy być ostrzejsi
+            }
+        },
+
+        setupXSSShield() {
+            const forbidden = /<script|javascript:|onerror|eval\(/gi;
             document.addEventListener('input', (e) => {
-                if (e.target.tagName === 'INPUT' && pattern.test(e.target.value)) {
+                if (e.target.tagName === 'INPUT' && forbidden.test(e.target.value)) {
                     e.target.value = "";
+                    this.log("XSS block");
                 }
             }, true);
         },
 
-        devToolsTrap: function() {
-            const start = performance.now();
-            debugger; 
-            if (performance.now() - start > this.config.maxDebugTime) {
-                // Zamiast terminate, najpierw spróbuj tylko ostrzec w konsoli
-                console.error("Aegis: High latency or Debugger detected");
-            }
+        setupKeyBlocker() {
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && ['u', 's', 'i', 'j'].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                }
+            }, true);
         },
 
-        heartbeat: function() {
-            setInterval(async () => {
-                try {
-                    await fetch('/api/config', { method: 'HEAD' });
-                } catch(e) { /* Ignoruj błędy sieciowe, by nie blokować użytkownika offline */ }
-            }, this.config.heartbeatInterval);
+        terminate(reason) {
+            console.error("AEGIS FATAL:", reason);
+            // Wyświetlamy błąd w sposób estetyczny, ale blokujący
+            document.body.innerHTML = `
+                <div style="background:#000;color:#ff003c;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;text-align:center;padding:20px;">
+                    <h1 style="border:2px solid #ff003c;padding:20px;">SYSTEM HALTED</h1>
+                    <p>${reason}</p>
+                    <button onclick="location.reload()" style="background:#ff003c;border:none;color:#000;padding:10px 20px;font-weight:bold;cursor:pointer;margin-top:20px;">RE-VERIFY</button>
+                </div>`;
         },
 
-        terminate: function(reason) {
-            // Wywołuj tylko w ostateczności
-            console.error("CRITICAL SECURITY BREACH: " + reason);
-            // document.body.innerHTML = "..."; // Odkomentuj tylko jeśli ataki są realne i częste
+        log(msg) {
+            // Ciche logowanie, by nie śmiecić w konsoli użytkownika
+            if (window.location.hostname === 'localhost') console.log("🛡️ Aegis:", msg);
         }
     };
 
     Aegis.init();
 })();
-
 
 
 /* ═══════════════════════════════════════════════════════════
