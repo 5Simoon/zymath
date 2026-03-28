@@ -1,91 +1,98 @@
 /**
- * /api/config.js  —  Vercel Serverless Function
+ * /api/config.js  —  Vercel Serverless Function (Zabezpieczona v4)
  *
  * PURPOSE:
- *   Serves configuration values (like the Desmos API key) that should not
- *   be hardcoded in static HTML. The client fetches this endpoint at runtime,
- *   so the key never appears in your GitHub repository or static build output.
+ *   Zwraca klucz Desmos API TYLKO po pomyślnej weryfikacji
+ *   Cloudflare Turnstile (antybotowej).
  *
- * SETUP IN VERCEL:
- *   1. Go to your project → Settings → Environment Variables
- *   2. Add:  DESMOS_API  =  your_actual_desmos_api_key
- *   3. Redeploy. Done.
- *
- * IMPORTANT LIMITATION:
- *   Client-side API keys (like Desmos') are inherently public — the user's
- *   browser must receive the key to call the Desmos CDN. This function prevents
- *   the key from leaking via your git history or HTML source, but a user who
- *   opens DevTools → Network tab will still see it. That is unavoidable.
- *   Treat the Desmos key as "low-sensitivity" and rotate it if ever leaked.
- *
- * SECURITY HEADERS SET HERE:
- *   - Cache-Control: cache for 1 hour on CDN, no private caching
- *   - Access-Control-Allow-Origin: restricted to same origin only
- */
-/**
- * /api/config.js  —  Vercel Serverless Function (Zabezpieczona)
- *
- * PURPOSE:
- * Zwraca klucz Desmos API TYLKO, jeśli użytkownik przejdzie weryfikację 
- * antybotową Cloudflare Turnstile.
+ * SECURITY FEATURES (v4):
+ *   - POST-only endpoint
+ *   - Cloudflare Turnstile server-side verification
+ *   - In-memory rate limiting (20 req / 15 min per IP)
+ *   - Input length guard (token max 2048 chars)
+ *   - no-store cache headers
+ *   - Structured error responses (no stack leakage)
  */
 
+// ── In-memory rate limiter (resets on cold start) ─────────────────────
+const RATE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT     = 20;              // max requests per window per IP
+const rateLimitMap   = new Map();       // ip -> { count, windowStart }
+
+function checkRateLimit(ip) {
+    const now = Date.now();
+    const entry = rateLimitMap.get(ip);
+    if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
+        rateLimitMap.set(ip, { count: 1, windowStart: now });
+        // Prune old entries to avoid memory leak
+        if (rateLimitMap.size > 5000) {
+            for (const [k, v] of rateLimitMap) {
+                if (now - v.windowStart > RATE_WINDOW_MS) rateLimitMap.delete(k);
+            }
+        }
+        return true; // OK
+    }
+    if (entry.count >= RATE_LIMIT) return false; // Too many
+    entry.count++;
+    return true;
+}
+
 export default async function handler(req, res) {
-    // 1. Zezwalamy TYLKO na żądania POST (bo przesyłamy token z frontu)
+    // 1. POST only
     if (req.method !== 'POST') {
         res.status(405).json({ error: 'Method not allowed. Use POST.' });
         return;
     }
 
-    // Pobieramy token przesłany ze strony i nasze tajne klucze z Vercela
+    // 2. Rate limiting per IP
+    const clientIP = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown')
+        .split(',')[0].trim();
+    if (!checkRateLimit(clientIP)) {
+        res.status(429).json({ error: 'Too many requests. Please wait a few minutes.' });
+        return;
+    }
+
+    // 3. Read secrets
     const { token } = req.body || {};
-    const desmosKey = process.env.DESMOS_API;
+    const desmosKey      = process.env.DESMOS_API;
     const turnstileSecret = process.env.TURNSTILE_SECRET;
 
-    // 2. Sprawdzamy, czy serwer na Vercelu jest poprawnie skonfigurowany
+    // 4. Server config check
     if (!desmosKey || !turnstileSecret) {
-        console.error('[api/config] Brak zmiennych środowiskowych na serwerze!');
+        console.error('[api/config] Missing environment variables!');
         res.status(500).json({ error: 'Server configuration error' });
         return;
     }
 
-    // 3. Sprawdzamy, czy użytkownik w ogóle przysłał token
-    if (!token) {
-        res.status(400).json({ error: 'Brak tokenu weryfikacyjnego Turnstile' });
+    // 5. Token presence + length guard
+    if (!token || typeof token !== 'string' || token.length > 2048) {
+        res.status(400).json({ error: 'Missing or invalid Turnstile token' });
         return;
     }
 
+    // 6. Verify token with Cloudflare
     try {
-        // 4. Weryfikujemy token u źródła (serwery Cloudflare)
         const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            // Przekazujemy nasz tajny klucz z Vercela oraz token od użytkownika
-            body: `secret=${encodeURIComponent(turnstileSecret)}&response=${encodeURIComponent(token)}`
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `secret=${encodeURIComponent(turnstileSecret)}&response=${encodeURIComponent(token)}&remoteip=${encodeURIComponent(clientIP)}`
         });
 
+        if (!verifyRes.ok) throw new Error('Cloudflare endpoint error: ' + verifyRes.status);
         const verifyData = await verifyRes.json();
 
-        // 5. Oceniamy wynik
         if (verifyData.success) {
-            // SUKCES: To jest człowiek!
-            
-            // BEZPIECZEŃSTWO: Ustawiamy brak cache'owania, żeby tokeny nie wyciekły!
+            // SUCCESS: human verified
             res.setHeader('Cache-Control', 'no-store, max-age=0');
-            res.setHeader('Access-Control-Allow-Origin', 'same-origin');
-            
-            // Zwracamy klucz
+            res.setHeader('X-Content-Type-Options', 'nosniff');
             res.status(200).json({ desmosKey });
         } else {
-            // BŁĄD: Cloudflare odrzucił token (np. był fałszywy lub wygasł)
-            console.error('[api/config] Odrzucono token:', verifyData['error-codes']);
-            res.status(403).json({ error: 'Weryfikacja Cloudflare Turnstile nie powiodła się' });
+            console.warn('[api/config] Turnstile rejected:', verifyData['error-codes']);
+            res.status(403).json({ error: 'Cloudflare Turnstile verification failed' });
         }
     } catch (error) {
-        // W razie problemów z siecią/serwerami Cloudflare
-        console.error('[api/config] Błąd połączenia z Cloudflare:', error);
-        res.status(500).json({ error: 'Internal server error during verification' });
+        // Don't leak error details to client
+        console.error('[api/config] Verification error:', error.message);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }
