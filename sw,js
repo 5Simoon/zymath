@@ -1,0 +1,66 @@
+/* ═══════════════════════════════════════════════════════════
+   ZYMATH SINGULARITY v4 — Service Worker (PWA Offline)
+   Caches core assets for offline use.
+   ═══════════════════════════════════════════════════════════ */
+const CACHE_NAME = 'zymath-v4';
+const PRECACHE = [
+    '/',
+    '/index.html',
+    '/style.css',
+    '/main.js',
+    '/manifest.json',
+];
+
+// Install: pre-cache shell assets
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(PRECACHE))
+            .then(() => self.skipWaiting())
+    );
+});
+
+// Activate: delete old caches
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+    );
+});
+
+// Fetch: network-first for API, cache-first for assets
+self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+
+    // Never cache API calls, Turnstile, or Desmos CDN
+    if (url.pathname.startsWith('/api/') ||
+        url.hostname.includes('cloudflare.com') ||
+        url.hostname.includes('desmos.com') ||
+        url.hostname.includes('mathjax') ||
+        url.hostname.includes('fonts.gstatic') ||
+        url.hostname.includes('fonts.googleapis')) {
+        return; // Let browser handle normally
+    }
+
+    // Cache-first for static assets
+    event.respondWith(
+        caches.match(event.request).then(cached => {
+            if (cached) return cached;
+            return fetch(event.request).then(response => {
+                // Only cache successful same-origin responses
+                if (!response || response.status !== 200 || response.type !== 'basic') {
+                    return response;
+                }
+                const toCache = response.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
+                return response;
+            }).catch(() => {
+                // Offline fallback: return cached index.html for navigation
+                if (event.request.mode === 'navigate') {
+                    return caches.match('/index.html');
+                }
+            });
+        })
+    );
+});
