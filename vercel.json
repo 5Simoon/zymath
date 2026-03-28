@@ -47,6 +47,15 @@
           "key": "Server",
           "value": "Zymath-Core-Engine"
         }
+        {
+  "key": "Access-Control-Allow-Origin",
+  "value": "same-origin"
+},
+{
+  "key": "Server",
+  "value": "Zymath-Aegis-Core"
+}
+
       ]
     }
   ]
