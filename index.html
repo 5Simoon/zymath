@@ -2,6 +2,7 @@
 <html lang="pl">
 <head>
    <meta name="google" content="notranslate">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 
 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
@@ -12,7 +13,7 @@
    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Zymath Singularity — matematyczny silnik edukacyjny. Teoria, 12 kalkulatorów, 150 zadań z trzema poziomami trudności.">
-    <title>Zymath Singularity</title>
+    <title>Zymath Singularity v4</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,12 +29,13 @@
     <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
    
-    <meta property="og:title" content="Zymath Singularity v2">
-    <meta property="og:description" content="Zaawansowany matematyczny silnik edukacyjny. 12 kalkulatorów, teoria i 150 zadań.">
+    <meta property="og:title" content="Zymath Singularity v4">
+    <meta property="og:description" content="Zaawansowany matematyczny silnik edukacyjny v4. 12 kalkulatorów, teoria, 150 zadań, cząsteczki, PDF, PWA.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://zymath.vercel.app">
     <meta property="og:image" content="https://zymath.vercel.app/og-image.png">
-    <meta name="theme-color" content="#10b981">
+    <meta name="theme-color" content="#10b981" id="meta-theme-color">
+    <link rel="manifest" href="/manifest.json">
 
     <script src="/main.js" defer></script>
 </head>
@@ -48,6 +50,7 @@
 </noscript>
 <div class="bg-grid"></div>
 <div class="bg-noise"></div>
+<canvas id="particles-canvas" aria-hidden="true"></canvas>
 <div class="blob blob-1"></div>
 <div class="blob blob-2"></div>
 <div id="doodle"></div>
@@ -66,7 +69,7 @@
 <!-- ═══════════════════ SECTION: HOME ═══════════════════ -->
 <section id="home" class="active">
     <div class="hero">
-        <div class="hero-pill"><span class="hero-dot"></span> System Edukacyjny v2.0</div>
+        <div class="hero-pill"><span class="hero-dot"></span> System Edukacyjny v4.0</div>
         <h1 class="main">ZYMATH<br><span class="ac" onclick="easterEgg()">SINGULARITY</span></h1>
         <p class="hero-sub">Teoria, dowody, kalkulatory i zadania — od podstaw do matury. Czysto. Precyzyjnie. Bez kompromisów.</p>
         <div class="stats-bar">
@@ -667,12 +670,30 @@
 </div><!-- /wrap -->
 
 <footer>
-    Projekt edukacyjny — <b>ZYMATH SINGULARITY v2</b><br>
+    Projekt edukacyjny — <b>ZYMATH SINGULARITY v4</b><br>
     Szkoła Podstawowa nr 149 im. Marszałka Józefa Piłsudskiego w Krakowie.<br>
     Autor: <b>5Simoon</b> &nbsp;·&nbsp; Rok szkolny 2025/2026 &nbsp;·&nbsp; Wszelkie prawa zastrzeżone © 2026<br>
     <a href="https://sp149krakow.edugle.pl" target="_blank" rel="noopener noreferrer">sp149krakow.edugle.pl</a>
     &nbsp;·&nbsp; <a href="https://sp149.krakow.pl" target="_blank" rel="noopener noreferrer">sp149.krakow.pl</a>
+    <div style="margin-top:10px;margin-bottom:6px"><a class="sec-txt-link" href="/.well-known/security.txt" target="_blank" rel="noopener noreferrer"><i data-lucide="shield-check" style="width:11px;height:11px;vertical-align:middle"></i> security.txt</a></div>
     <div class="fw">⚠ Zaprojektowane dla wysokich rozdzielczości. Na urządzeniach mobilnych część modułów działa ograniczeniu.</div>
 </footer>
+
+<!-- Particles toggle -->
+<button id="particles-toggle" onclick="toggleParticles()" aria-label="Przełącz cząsteczki">
+    <i data-lucide="sparkles"></i> Cząsteczki ON
+</button>
+
+
+<!-- PWA Install Banner -->
+<div id="pwa-banner" role="dialog" aria-label="Zainstaluj aplikację">
+    <div class="pwa-title">📲 Zainstaluj Zymath</div>
+    <div class="pwa-sub">Dodaj do ekranu głównego i używaj offline!</div>
+    <div class="pwa-actions">
+        <button class="pwa-btn-install" onclick="installPWA()">Zainstaluj</button>
+        <button class="pwa-btn-dismiss" onclick="dismissPWA()">Nie teraz</button>
+    </div>
+</div>
+
 </body>
 </html>
