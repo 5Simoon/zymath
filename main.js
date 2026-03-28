@@ -1475,3 +1475,6 @@ window.toggleTheme = function() {
 setTimeout(resizeCanvas, 100);
 buildTasks();
 initMathKeyboard();
+
+
+/* Zymath Singularity v2 | (c) 2026 5Simoon | Licensed under GNU GPL v3 */
