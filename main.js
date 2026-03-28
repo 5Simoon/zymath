@@ -231,7 +231,7 @@ function renderHistory() {
     el.addEventListener('click', e => {
         const btn = e.target.closest('[data-copy]');
         if (btn) copyToClipboard(btn.dataset.copy, btn);
-    }, { once: true });
+    }); // Removed { once: true }
     if (window.lucide) window.lucide.createIcons();
 }
 
