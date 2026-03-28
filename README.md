@@ -54,6 +54,7 @@ Ten projekt jest chroniony licencją **GNU GPL v3**.
 * **Matematyka:** MathJax (LaTeX rendering).
 * **Deployment:** Vercel Edge Network.
 
+/* Zymath Singularity v2 | (c) 2026 5Simoon | Licensed under GNU GPL v3 */
 ---
 
 ## 👨‍💻 Autor
