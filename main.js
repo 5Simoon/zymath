@@ -5,6 +5,23 @@
    1. INIT
 ═══════════════════════════════════════════════════════════ */
 lucide.createIcons();
+// 1. Iframe Buster - jeśli strona jest w ramce, natychmiast ją z niej "wyrywa"
+if (window.top !== window.self) {
+    window.top.location = window.self.location;
+}
+
+// 2. Prosta ochrona przed kopiowaniem treści (opcjonalna, ekstremalna)
+document.addEventListener('contextmenu', event => event.preventDefault()); // Blokuje prawy przycisk myszy
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i')) {
+        e.preventDefault(); // Blokuje Ctrl+U (źródło), Ctrl+S (zapis), Ctrl+I (inspekcja)
+    }
+});
+
+// 3. Czyszczenie Referrera przy wyjściu
+document.querySelectorAll('a').forEach(link => {
+    link.setAttribute('rel', 'noopener noreferrer');
+});
 
 // Floating doodle symbols
 (function spawnDoodles() {
