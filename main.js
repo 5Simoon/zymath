@@ -1,113 +1,109 @@
 
 'use strict';
+/* ═══════════════════════════════════════════════════════════
+   ZYMATH AEGIS PROTOCOL - INTEGRATED FIREWALL v2.5
+   ═══════════════════════════════════════════════════════════ */
 (function() {
-    const _SENTINEL_VERSION = "2.4.0-PRO";
-    
-    const SecurityCore = {
-        // 1. Weryfikacja fundamentów (Protokół i Środowisko)
-        checkEnvironment: function() {
-            const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
-            if (!isSecure || window.top !== window.self) {
-                this.terminate("Protocol/Framing Violation");
-            }
+    const Aegis = {
+        // Konfiguracja progów bezpieczeństwa
+        config: {
+            maxDebugTime: 100,
+            heartbeatInterval: 30000,
+            checkInterval: 2000
         },
 
-        // 2. Detekcja manipulacji przy kodzie (Anti-Tamper)
-        initIntegrityShield: function() {
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((m) => {
-                    const criticalNodes = ['security-wrapper', 'desmos-calculator', 'trap-container'];
-                    m.removedNodes.forEach((node) => {
-                        if (criticalNodes.includes(node.id)) this.terminate("Integrity Breach");
-                    });
-                });
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-        },
-
-        // 3. Pułapka na DevTools (Dynamiczny Debugger)
-        launchDevToolsTrap: function() {
-            const start = new Date();
-            debugger; // Jeśli konsola jest otwarta, skrypt tu "zastygnie"
-            const end = new Date();
-            if (end - start > 100) {
-                console.warn("Security Alert: Debugger attached.");
-            }
-        },
-
-        // 4. Honeypot & Input Shield
-        verifyInputs: function() {
-            const trap = document.getElementById('security_trap');
-            if (trap && trap.value.length > 0) this.terminate("Automated Input Detected");
+        init: function() {
+            this.secureHeaders();
+            this.integrityCheck();
+            this.antiXSS();
+            this.devToolsTrap();
+            this.heartbeat();
             
-            // Blokada wstrzykiwania skryptów w pola tekstowe
-            document.querySelectorAll('input').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    if (/<script|javascript:|onerror/gi.test(e.target.value)) {
-                        e.target.value = "";
-                        console.error("XSS Attempt Blocked");
-                    }
-                });
+            // Pętla stałego nadzoru
+            setInterval(() => {
+                this.integrityCheck();
+                this.devToolsTrap();
+            }, this.config.checkInterval);
+
+            console.log("%cZymath Aegis Active", "color: #00ff00; font-weight: bold;");
+        },
+
+        // 1. Weryfikacja środowiska (Protokół i Ramki)
+        secureHeaders: function() {
+            if (window.top !== window.self) window.top.location = window.self.location;
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                this.terminate("Insecure Protocol");
+            }
+        },
+
+        // 2. Strażnik Struktury (Anti-Tamper)
+        integrityCheck: function() {
+            const criticalElements = ['security-wrapper', 'desmos-calculator', 'trap-container'];
+            criticalElements.forEach(id => {
+                if (!document.getElementById(id) && document.readyState === 'complete') {
+                    this.terminate("DOM Integrity Compromised");
+                }
             });
         },
 
-        // 5. Procedura awaryjna
-        terminate: function(reason) {
-            document.body.innerHTML = `<div style="background:#000;color:#f00;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;text-align:center;">
-                <h1>SECURITY TERMINATION</h1>
-                <p>Reason: ${reason}</p>
-                <button onclick="location.reload()" style="background:#f00;color:#000;border:none;padding:10px 20px;cursor:pointer;font-weight:bold;">RE-AUTHENTICATE</button>
-            </div>`;
-            throw new Error("Security Termination: " + reason);
+        // 3. Filtr antyskryptowy (Real-time XSS Shield)
+        antiXSS: function() {
+            const pattern = /<script|javascript:|onerror|onload|eval\(/gi;
+            document.addEventListener('input', (e) => {
+                if (e.target.tagName === 'INPUT' && pattern.test(e.target.value)) {
+                    e.target.value = "";
+                    console.error("Aegis: XSS Injection Blocked");
+                }
+            }, true);
         },
 
-        // 6. Cichy "Heartbeat" (Wysyła status do Vercela)
+        // 4. Pułapka na Debuggera
+        devToolsTrap: function() {
+            const start = performance.now();
+            debugger; // Skrypt zatrzyma się tutaj, jeśli konsola jest otwarta
+            if (performance.now() - start > this.config.maxDebugTime) {
+                this.terminate("Unauthorized Debugging");
+            }
+        },
+
+        // 5. Heartbeat (Ciągłość połączenia z serwerem)
         heartbeat: function() {
-            fetch('/api/config', { method: 'HEAD', cache: 'no-store' })
-                .catch(() => this.terminate("Connection Interrupted"));
+            setInterval(async () => {
+                try {
+                    const res = await fetch('/api/config', { method: 'HEAD' });
+                    if (res.status === 404) this.terminate("Backend Link Lost");
+                } catch(e) { /* Cichy błąd - brak neta to nie atak */ }
+            }, this.config.heartbeatInterval);
+        },
+
+        // 6. Procedura "Nuklearna" (Blokada strony)
+        terminate: function(reason) {
+            document.body.innerHTML = `
+                <div style="background:#000;color:#ff003c;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;border:20px solid #ff003c;box-sizing:border-box;">
+                    <h1 style="font-size:3rem;">SECURITY BREACH</h1>
+                    <p style="font-size:1.2rem;">System Lockdown: ${reason}</p>
+                    <button onclick="location.reload()" style="margin-top:20px;padding:15px 30px;background:#ff003c;color:#000;border:none;font-weight:bold;cursor:pointer;">RE-VALIDATE</button>
+                </div>`;
+            throw new Error("Aegis Lockdown: " + reason);
         }
     };
 
-    // Uruchomienie systemów
-    window.addEventListener('DOMContentLoaded', () => {
-        SecurityCore.checkEnvironment();
-        SecurityCore.initIntegrityShield();
-        SecurityCore.verifyInputs();
-        
-        // Pętla monitorująca w tle
-        setInterval(() => {
-            SecurityCore.launchDevToolsTrap();
-            SecurityCore.checkEnvironment();
-        }, 3000);
-
-        // Co 30 sekund sprawdza, czy serwer wciąż nas widzi
-        setInterval(() => SecurityCore.heartbeat(), 30000);
-    });
-
-    // Blokada skrótów klawiszowych (Źródło strony / Inspekcja)
+    // Blokada skrótów klawiszowych (Ctrl+U, Ctrl+Shift+I, itp.)
     window.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i' || e.key === 'j')) {
+        if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i' || e.key === 'j' || e.shiftKey && e.key === 'I')) {
             e.preventDefault();
+            return false;
         }
-    }, { capture: true });
+    }, true);
 
+    // Start systemu po załadowaniu DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => Aegis.init());
+    } else {
+        Aegis.init();
+    }
 })();
-/* PAGE SECURITY */
-// 1. Ochrona przed osadzaniem w ramkach (Iframe Buster)
-if (window.top !== window.self) { window.top.location = window.self.location; }
 
-// 2. Sanitizer - czyść dane z inputów przed liczeniem
-function sanitize(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML.replace(/[<>'"\/]/g, '');
-}
-
-// 3. Honeypot - Pułapka na boty
-// Dodaj w HTML: <input type="text" id="trap" style="display:none;" tabindex="-1">
-function isBot() {
-    return document.getElementById('trap').value.length > 0;
-}
 
 /* ═══════════════════════════════════════════════════════════
    1. INIT
