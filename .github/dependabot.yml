@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # 1. Śledzenie zależności z ekosystemu Node.js / npm (jeśli używasz package.json)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly" # Sprawdza aktualizacje co tydzień
+      day: "monday"      # Raportuje w poniedziałki rano
+      timezone: "Europe/Warsaw"
+    open-pull-requests-limit: 10 # Nie otworzy więcej niż 10 PR-ów naraz, żeby nie zrobić bałaganu
+    commit-message:
+      prefix: "fix"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"] # Ignoruje duże aktualizacje, które mogłyby zepsuć kod, ale ZAWSZE przepuszcza łatki bezpieczeństwa
+
+  # 2. Śledzenie akcji GitHuba (jeśli w przyszłości dodasz pliki w .github/workflows/)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Europe/Warsaw"
+    open-pull-requests-limit: 5
