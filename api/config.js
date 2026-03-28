@@ -96,3 +96,5 @@ export default async function handler(req, res) {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
+
+/* Zymath Singularity v2 | (c) 2026 5Simoon | Licensed under GNU GPL v3 */
