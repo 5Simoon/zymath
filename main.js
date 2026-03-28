@@ -1,5 +1,14 @@
 
 'use strict';
+function sanitizeInput(input) {
+    const temp = document.createElement('div');
+    temp.textContent = input;
+    return temp.innerHTML.replace(/[<>'"\/]/g, ''); // Usuwa znaki specjalne HTML
+}
+
+// Przykład użycia:
+let rawValue = document.getElementById('calc-input').value;
+let safeValue = sanitizeInput(rawValue);
 
 /* ═══════════════════════════════════════════════════════════
    1. INIT
