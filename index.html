@@ -3,155 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zymath Singularity vX - ULTIMATE OMNI-CORE</title>
+  <meta name="description" content="Zymath Singularity — matematyczny silnik edukacyjny. Omni-Core, Desmos, PWA.">
+  <meta name="theme-color" content="#05050A">
+  <link rel="manifest" href="/manifest.json">
+  <title>Zymath Singularity OMNI</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: { extend: { colors: {
-        border: "hsl(var(--border))", input: "hsl(var(--input))", ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))", foreground: "hsl(var(--foreground))",
-        primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
-        secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))" },
-        muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
-        accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
-        card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
-      }}}
-    }
+    tailwind.config = { theme: { extend: { colors: { background: "hsl(230 35% 5%)", foreground: "hsl(210 40% 96%)", primary: "hsl(252 90% 68%)", accent: "hsl(190 95% 55%)", border: "hsl(230 20% 14%)", secondary: "hsl(230 25% 12%)" }}}}
   </script>
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="zymath-body">
+<body class="zymath-body text-sm bg-background text-foreground flex h-screen overflow-hidden">
 
-  <div id="aegis-firewall" class="aegis-overlay">
-    <div class="aegis-container">
-      <div class="aegis-icon-wrapper pulse-glow">
-        <div class="aegis-icon-bg animate-pulse"></div>
-        <i data-lucide="shield-alert" class="aegis-icon"></i>
-      </div>
-      <div class="aegis-title glow-text-primary">AEGIS MAX-SECURE</div>
-      <div class="aegis-subtitle animate-pulse">SYSTEM OCHRONY AKTYWNY | OMNI-PARSER ONLINE</div>
-      <div id="boot-log" class="aegis-log custom-scrollbar"></div>
-      <div class="aegis-progress-bg">
-        <div id="boot-progress" class="aegis-progress-bar shadow-accent"></div>
-      </div>
-    </div>
+  <div id="aegis-firewall" class="aegis-overlay fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center font-mono">
+    <div class="aegis-icon-wrapper pulse-glow mb-4 border border-primary p-4 rounded-xl"><i data-lucide="shield-alert" class="text-primary h-10 w-10"></i></div>
+    <div class="text-primary font-black text-2xl tracking-widest">AEGIS KERNEL</div>
+    <div id="boot-progress" class="h-1 bg-accent mt-4 w-0 transition-all"></div>
   </div>
 
-  <canvas id="particles-canvas" class="particles-layer"></canvas>
-  <div class="grid-pattern fixed inset-0 z-0"></div>
+  <canvas id="particles-canvas" class="fixed inset-0 pointer-events-none opacity-30"></canvas>
 
-  <aside class="sidebar-container glass-sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo-icon pulse-glow">
-        <i data-lucide="cpu" class="h-5 w-5 text-primary"></i>
-      </div>
-      <span class="sidebar-logo-text glow-text-primary">ZYMATH vX</span>
+  <aside class="w-56 glass-sidebar border-r border-border shrink-0 flex flex-col z-40">
+    <div class="h-14 flex items-center gap-3 px-4 border-b border-border">
+      <div class="h-6 w-6 rounded border border-primary/30 bg-primary/10 flex items-center justify-center"><i data-lucide="cpu" class="h-3.5 w-3.5 text-primary"></i></div>
+      <span class="font-black text-primary tracking-widest">ZYMATH</span>
     </div>
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-2 custom-scrollbar">
+      <button onclick="switchPage('home')" class="nav-btn active w-full flex items-center gap-2 p-2 rounded text-muted-foreground hover:text-white hover:bg-secondary"><i data-lucide="home" class="h-4 w-4"></i> Przegląd</button>
+      <button onclick="switchPage('engine')" class="nav-btn w-full flex items-center gap-2 p-2 rounded text-muted-foreground hover:text-white hover:bg-secondary"><i data-lucide="terminal" class="h-4 w-4"></i> Omni-Terminal</button>
+      <button onclick="switchPage('desmos')" class="nav-btn w-full flex items-center gap-2 p-2 rounded text-muted-foreground hover:text-white hover:bg-secondary"><i data-lucide="line-chart" class="h-4 w-4"></i> Desmos Wykresy</button>
+      <button onclick="switchPage('tasks')" class="nav-btn w-full flex items-center gap-2 p-2 rounded text-muted-foreground hover:text-white hover:bg-secondary"><i data-lucide="pen-tool" class="h-4 w-4"></i> Baza Zadań</button>
+      <button onclick="switchPage('formulas')" class="nav-btn w-full flex items-center gap-2 p-2 rounded text-muted-foreground hover:text-white hover:bg-secondary"><i data-lucide="library" class="h-4 w-4"></i> Baza Wzorów</button>
 
-    <nav class="sidebar-nav custom-scrollbar">
-      <span class="nav-section-title">Nawigacja</span>
-      <button onclick="switchPage('home')" id="nav-home" class="nav-btn active">
-        <i data-lucide="compass" class="nav-icon"></i> Strona Główna
-      </button>
-      <button onclick="switchPage('engine')" id="nav-engine" class="nav-btn">
-        <i data-lucide="terminal-square" class="nav-icon"></i> Omni Terminal
-      </button>
-      <button onclick="switchPage('tasks')" id="nav-tasks" class="nav-btn">
-        <i data-lucide="graduation-cap" class="nav-icon"></i> Zadania CKE
-      </button>
-      <button onclick="switchPage('formulas')" id="nav-formulas" class="nav-btn">
-        <i data-lucide="library" class="nav-icon"></i> Baza Wzorów
-      </button>
-
-      <span class="nav-section-title mt-8">Narzędzia</span>
-      <div id="pomodoro" class="pomodoro-widget glass-lighter group" onclick="togglePomodoro()">
-        <div class="pomodoro-left">
-          <i data-lucide="timer" class="pomodoro-icon group-hover:text-accent"></i>
-          <span class="pomodoro-label">Pomodoro</span>
+      <div class="mt-8 pt-4 border-t border-border">
+        <div id="pomodoro" class="flex items-center justify-between p-2 rounded border border-border cursor-pointer hover:border-primary/50" onclick="togglePomodoro()">
+          <div class="flex items-center gap-2"><i data-lucide="timer" class="pomodoro-icon h-4 w-4 text-muted-foreground"></i><span class="text-xs">Pomodoro</span></div>
+          <span id="pomodoro-time" class="font-mono text-xs text-muted-foreground">25:00</span>
         </div>
-        <span id="pomodoro-time" class="pomodoro-time">25:00</span>
       </div>
     </nav>
   </aside>
 
-  <main class="main-content custom-scrollbar">
+  <main class="flex-1 overflow-y-auto relative z-10 p-6 custom-scrollbar">
     
-    <section id="page-home" class="page-view active-page">
-      <div class="hero-card glass-card fade-in">
-        <h1 class="hero-title">
-          NEXUS <span class="text-gradient">OMNI-CORE vX</span>
-        </h1>
-        <p class="hero-subtitle">
-          Najpotężniejszy matematyczny silnik w przeglądarce. Integruje ponad 30 algorytmów analitycznych, stochastycznych i kryptograficznych.
-        </p>
+    <section id="page-home" class="page-view active-page max-w-5xl mx-auto space-y-6">
+      <div class="glass-card rounded-2xl p-6 sm:p-8 border-t-2 border-t-primary fade-in text-center">
+        <h1 class="text-3xl font-black mb-2 text-foreground">NEXUS <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">OMNI-CORE</span></h1>
+        <p class="text-muted-foreground text-xs max-w-xl mx-auto">Kompaktowe środowisko matematyczne z ochroną Aegis i pełnym arsenałem edukacyjnym.</p>
       </div>
-      
-      <div class="section-container fade-in-up">
-        <h2 class="section-title"><i data-lucide="history" class="text-primary"></i> Historia Matematyki</h2>
-        <div class="history-grid" id="history-container"></div>
-      </div>
-      
-      <div class="section-container fade-in-up">
-        <h2 class="section-title"><i data-lucide="sparkles" class="text-accent"></i> Ciekawostki</h2>
-        <div class="trivia-grid" id="trivia-container"></div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 fade-in-up">
+        <div class="col-span-1 md:col-span-2 space-y-4">
+          <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="history" class="h-4 w-4 text-primary"></i> Historia</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="history-container">
+            </div>
+        </div>
+        <div class="space-y-4">
+          <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="sparkles" class="h-4 w-4 text-accent"></i> Ciekawostki</h2>
+          <div class="flex flex-col gap-3" id="trivia-container">
+            </div>
+        </div>
       </div>
     </section>
 
-    <section id="page-engine" class="page-view hidden">
-      <div class="terminal-header fade-in">
-        <h1 class="page-title">Omni <span class="text-gradient">Terminal</span></h1>
-        <p class="page-desc"><i data-lucide="zap" class="h-4 w-4 text-accent"></i> Auto-detekcja aktywna. Rozwiązuje całki, równania różniczkowe, grafy i optymalizacje.</p>
+    <section id="page-engine" class="page-view hidden max-w-4xl mx-auto space-y-6">
+      <div class="fade-in">
+        <h1 class="text-2xl font-black text-foreground">NEXUS <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Terminal</span></h1>
       </div>
-
-      <div class="terminal-card glass-card fade-in-up">
-        <textarea id="math-input" placeholder="Wprowadź równanie (np. simpson(x^2, 0, 5), luDecomp([[1,2],[3,4]])..." class="terminal-input glass-input custom-scrollbar" spellcheck="false"></textarea>
-        
-        <div class="hints-container" id="omni-hints">
+      <div class="macos-terminal fade-in-up">
+        <div class="macos-header bg-[#1e1e23] p-2 flex gap-2 rounded-t-lg items-center">
+          <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_4px_rgba(255,0,0,0.4)]"></span>
+          <span class="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_4px_rgba(255,255,0,0.4)]"></span>
+          <span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_4px_rgba(0,255,0,0.4)]"></span>
+          <span class="ml-2 text-xs text-gray-400 font-mono">root@zymath:~ (zsh)</span>
+        </div>
+        <div class="p-4 bg-[#0f0f14] rounded-b-lg">
+          <textarea id="math-input" placeholder="Wpisz komendę (np. simpson(x^2, 0, 5) albo lu([[1,2],[3,4]]))..." class="w-full bg-transparent text-white font-mono outline-none resize-none min-h-[120px] custom-scrollbar text-sm" spellcheck="false"></textarea>
+          <div class="flex flex-wrap gap-1.5 mt-2" id="omni-hints"></div>
+          <div class="flex justify-between items-center mt-4 pt-3 border-t border-white/10">
+            <span class="text-[9px] text-accent font-mono flex items-center gap-1.5 uppercase tracking-widest">
+              <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent"></span></span> Aegis Active
+            </span>
+            <button id="compute-btn" class="bg-primary text-black px-6 py-2 rounded font-bold text-xs flex items-center gap-2 hover:opacity-80 transition-opacity"><i data-lucide="cpu" class="h-3.5 w-3.5"></i> Wykonaj</button>
           </div>
-
-        <div class="terminal-footer">
-          <span class="aegis-status">
-            <span class="status-dot"><span class="ping"></span><span class="dot"></span></span> Aegis: ON
-          </span>
-          <button id="compute-btn" class="compute-btn glow-primary">
-            <i data-lucide="cpu" class="h-5 w-5"></i> Analizuj (⌘+Enter)
-          </button>
         </div>
       </div>
-
-      <div id="result-container" class="result-card glass-card hidden fade-in">
-        <div class="result-header">
-          <span class="result-label"><i data-lucide="terminal-square" class="h-4 w-4"></i> Omni-Output</span>
-          <span id="detected-mode" class="detected-badge">Detekcja...</span>
+      <div id="result-container" class="hidden macos-terminal bg-[#0f0f14] p-6 rounded-lg border border-primary/30 shadow-[0_0_20px_hsl(252,90%,68%,0.2)] fade-in">
+        <div class="flex justify-between border-b border-white/10 pb-2 mb-4">
+          <span id="detected-mode" class="text-[10px] text-primary font-mono bg-primary/10 px-2 py-1 rounded uppercase tracking-widest">Output</span>
+          <span class="text-xs text-muted-foreground font-mono flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3"></i> <span id="exec-time">0</span>ms</span>
         </div>
-        <div id="result-output" class="result-output"></div>
-        <div id="steps-container" class="steps-container glass-lighter hidden custom-scrollbar">
+        <div id="result-output" class="text-xl font-black text-primary font-mono break-all leading-relaxed" style="text-shadow: 0 0 10px hsl(252 90% 68% / 0.6);"></div>
+        <div id="steps-container" class="hidden mt-4 p-4 rounded-lg bg-black/40 border border-white/5 text-xs text-foreground/80 prose prose-invert max-w-none font-mono">
           <div id="steps-output"></div>
         </div>
       </div>
     </section>
 
-    <section id="page-tasks" class="page-view hidden">
-      <div class="page-header border-b border-border pb-6"><h1 class="page-title fade-in">Zadania <span class="text-accent">CKE</span></h1></div>
-      <div class="tasks-grid" id="tasks-container"></div>
+    <section id="page-desmos" class="page-view hidden max-w-5xl mx-auto space-y-4 h-[80vh] flex flex-col">
+      <h1 class="text-2xl font-black">Wykresy <span class="text-accent">Desmos</span></h1>
+      <div id="cf-turnstile-container" class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-callback="onTurnstileSuccess"></div>
+      <div id="desmos-calculator" class="flex-1 w-full rounded-xl overflow-hidden border border-border hidden"></div>
     </section>
 
-    <section id="page-formulas" class="page-view hidden">
-      <div class="page-header flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-border pb-6">
-        <h1 class="page-title fade-in">Baza <span class="text-primary">Wzorów</span></h1>
-        <div class="filters-container glass-lighter" id="formula-filters"></div>
+    <section id="page-tasks" class="page-view hidden max-w-5xl mx-auto space-y-4">
+      <div class="border-b border-border pb-3"><h1 class="text-2xl font-black text-foreground fade-in">Zadania <span class="text-accent">CKE</span></h1></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="tasks-container"></div>
+    </section>
+
+    <section id="page-formulas" class="page-view hidden max-w-6xl mx-auto space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-border pb-3">
+        <h1 class="text-2xl font-black text-foreground fade-in">Baza <span class="text-primary">Wzorów</span></h1>
+        <div class="flex flex-wrap gap-1 bg-secondary/50 p-1 rounded-lg border border-border" id="formula-filters"></div>
       </div>
-      <div class="formulas-grid" id="formulas-container"></div>
+      <div class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4" id="formulas-container"></div>
     </section>
 
   </main>
-  
+
+  <div id="pwa-banner" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-secondary border border-primary/50 p-4 rounded-xl flex items-center gap-4 hidden z-50 shadow-2xl">
+    <div class="text-white text-sm">Zainstaluj Zymath jako aplikację (PWA)</div>
+    <button onclick="installPWA()" class="bg-primary text-black px-3 py-1 rounded text-xs font-bold hover:opacity-80">Instaluj</button>
+  </div>
+
   <script src="main.js"></script>
 </body>
 </html>
