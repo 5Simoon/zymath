@@ -1,201 +1,264 @@
 /* ════════════════════════════════════════════════════════════
-   ZYMATH SINGULARITY v4 — Integrated Design System
+   ZYMATH SINGULARITY v4 — Full Integrated Stylesheet
    Author: 5Simoon | Szkoła Podstawowa nr 149, Kraków
    ════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:ital,wght@0,300..900;1,300..900&family=Press+Start+2P&display=swap');
+/* ── 1. IMPORTY CZCIONEK ───────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ── 2. ZMIENNE (DESIGN TOKENS) ────────────────────────────── */
+:root {
+    --bg: #030305;
+    --bg-surface: #08080a;
+    --bg-card: rgba(12, 12, 16, 0.82);
+    --bg-input: rgba(5, 5, 7, 0.9);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-hi: rgba(255, 255, 255, 0.2);
+    
+    --red: #ff003c;
+    --red-glow: rgba(255, 0, 60, 0.4);
+    --red-soft: rgba(255, 0, 60, 0.1);
+    --cyan: #00d4ff;
+    --cyan-glow: rgba(0, 212, 255, 0.3);
+    
+    --text: #ffffff;
+    --muted: #88888e;
 
-/* ══ 1. DESIGN TOKENS (Variables) ══════════════════════════ */
-@layer base {
-  :root {
-    /* Main HSL Palette - Deep Space Theme */
-    --background: 230 35% 5%;
-    --foreground: 210 40% 96%;
-    
-    --card: 230 30% 8%;
-    --card-foreground: 210 40% 96%;
-    
-    --primary: 252 90% 68%; /* Purple-ish */
-    --primary-foreground: 0 0% 100%;
-    
-    --accent: 190 95% 55%;  /* Cyan-ish */
-    --accent-foreground: 0 0% 100%;
-
-    --muted: 230 25% 14%;
-    --muted-foreground: 215 20% 50%;
-    
-    --destructive: 0 72% 55%; /* Red */
-    --border: 230 20% 14%;
-    --input: 230 20% 14%;
-    --ring: 252 90% 68%;
-    
-    /* Legacy variables for backward compatibility */
-    --red:      #ff003c;
-    --cyan:     #00d4ff;
-    --green:    #10b981;
-    --yellow:   #fbbf24;
-    
-    /* Typography & Radii */
-    --radius: 0.85rem;
-    --font-sans: 'Inter', 'Figtree', sans-serif;
-    --font-mono: 'JetBrains Mono', 'Google Sans Code', monospace;
     --font-display: 'Bricolage Grotesque', sans-serif;
-    --font-pixel: 'Press Start 2P', cursive;
+    --font-body: 'Figtree', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
 
-    /* Sidebar */
-    --sidebar-background: 230 35% 4%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-border: 230 20% 10%;
-  }
-
-  [data-theme="light"] {
-    --background: 210 20% 96%;
-    --foreground: 230 35% 5%;
-    --card: 0 0% 100%;
-    --border: 230 10% 90%;
-  }
+    --r-md: 12px;
+    --r-lg: 20px;
+    --r-pill: 999px;
+    --max-w: 1280px;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ══ 2. RESET & BASE STYLES ════════════════════════════════ */
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-    box-sizing: border-box;
-  }
-  
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-sans);
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.08), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 100%, hsl(var(--accent) / 0.05), transparent);
-    background-attachment: fixed;
-    min-height: 100vh;
-    line-height: 1.65;
+/* ── 3. RESET & BAZA ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
     overflow-x: hidden;
-  }
+    min-height: 100vh;
+    background-image: 
+        radial-gradient(circle at 50% -20%, rgba(255, 0, 60, 0.15), transparent 70%),
+        radial-gradient(circle at 0% 100%, rgba(0, 212, 255, 0.08), transparent 50%);
+    background-attachment: fixed;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { 
-    background: hsl(var(--border)); 
-    border-radius: 999px; 
-}
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.6); }
-
-/* ══ 3. GLASSMORPHISM & CARDS ══════════════════════════════ */
-.glass {
-  background: hsl(230 30% 10% / 0.6);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid hsl(var(--border) / 0.5);
+/* Siatka w tle (bg-grid z Twojego HTML) */
+.bg-grid {
+    position: fixed; inset: 0; z-index: -1;
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at center, black, transparent 80%);
 }
 
-.glass-card {
-  background: linear-gradient(135deg, hsl(230 30% 12% / 0.7), hsl(230 30% 8% / 0.8));
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid hsl(var(--border) / 0.6);
-  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.3), inset 0 1px 0 hsl(255 100% 100% / 0.05);
-  border-radius: var(--radius);
-  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+/* ── 4. LAYOUT SYSTEM (NAPRAWA JEDNEJ STRONY) ─────────────── */
+.wrap {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 140px 24px 60px;
 }
 
-.glass-card:hover {
-  transform: translateY(-4px);
-  border-color: hsl(var(--primary) / 0.4);
+/* To sprawia, że sekcje nie nakładają się na siebie */
+section { 
+    display: none; 
+    opacity: 0;
+    transform: translateY(15px);
 }
 
-.glass-input {
-  background: hsl(230 30% 8% / 0.7) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid hsl(var(--border) / 0.6) !important;
-  color: hsl(var(--foreground));
-  border-radius: 0.5rem;
-  padding: 0.75rem;
+section.active { 
+    display: block; 
+    animation: fadeIn 0.5s var(--ease) forwards; 
 }
 
-.glass-input:focus {
-  border-color: hsl(var(--primary) / 0.6) !important;
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1) !important;
-  outline: none;
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* ══ 4. GLOW & ANIMATIONS ══════════════════════════════════ */
-.glow-primary { box-shadow: 0 0 24px hsl(var(--primary) / 0.4); }
-.glow-text-primary { text-shadow: 0 0 20px hsl(var(--primary) / 0.6); }
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.gradient-border {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), #c084fc, hsl(var(--primary)));
-  background-size: 300% 300%;
-  animation: gradient-shift 4s ease infinite;
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-}
-.float { animation: float 4s ease-in-out infinite; }
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; filter: brightness(1); }
-  50% { opacity: 0.7; filter: brightness(1.2); }
-}
-.pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-
-/* ══ 5. UI COMPONENTS ══════════════════════════════════════ */
-.math-input { font-family: var(--font-mono); }
-
-.hero-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 8vw, 6rem);
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 0.9;
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
 }
 
-.btn-primary {
-  @apply bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg transition-all;
-  box-shadow: 0 0 15px hsl(var(--primary) / 0.3);
+/* ── 5. NAWIGACJA (NAVBAR) ─────────────────────────────────── */
+.nav-wrap {
+    position: fixed; top: 25px; left: 50%; transform: translateX(-50%);
+    width: 90%; max-width: 600px; z-index: 1000;
 }
 
-.btn-primary:hover {
-  @apply brightness-110 -translate-y-0.5;
-  box-shadow: 0 0 25px hsl(var(--primary) / 0.5);
+nav {
+    background: rgba(10, 10, 12, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 
-.status-pill {
-  @apply flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-background/50 text-[10px] uppercase tracking-widest;
-  font-family: var(--font-mono);
+.nb {
+    background: transparent; border: none; color: var(--muted);
+    font-family: var(--font-code); font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; padding: 12px 20px; cursor: pointer;
+    border-radius: var(--r-pill); transition: all 0.3s var(--ease);
+    display: flex; align-items: center; gap: 8px;
 }
 
-.status-dot {
-  @apply w-1.5 h-1.5 rounded-full bg-primary;
-  box-shadow: 0 0 8px hsl(var(--primary));
-  animation: pulse 2s infinite;
+.nb i { width: 16px; height: 16px; }
+
+.nb:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+.nb.active { 
+    background: var(--text); 
+    color: var(--bg); 
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
 }
 
-@keyframes pulse {
-  0% { transform: scale(0.95); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.5; }
+/* ── 6. KARTY I ELEMENTY (DESIGN) ────────────────────────── */
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s var(--ease);
 }
 
-/* Grid Pattern for sections */
-.grid-pattern {
-  background-image:
-    linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
-  background-size: 40px 40px;
+.card:hover {
+    transform: translateY(-5px);
+    border-color: var(--border-hi);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.ci { padding: 30px; }
+
+.ct {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+}
+
+.tb { color: var(--muted); font-size: 0.95rem; margin-bottom: 15px; }
+
+.ex {
+    background: rgba(255,255,255,0.03);
+    padding: 12px;
+    border-radius: var(--r-md);
+    font-family: var(--font-code);
+    font-size: 0.85rem;
+    color: var(--cyan);
+}
+
+/* ── 7. HERO & NAGŁÓWKI ───────────────────────────────────── */
+.hero { text-align: center; margin-bottom: 60px; }
+
+h1.main {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 10vw, 6.5rem);
+    font-weight: 800;
+    line-height: 0.85;
+    letter-spacing: -4px;
+    margin: 20px 0;
+}
+
+h1 .ac {
+    color: var(--red);
+    text-shadow: 0 0 40px var(--red-glow);
+}
+
+.sh {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin: 50px 0 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.sh::after {
+    content: ''; height: 1px; flex-grow: 1;
+    background: linear-gradient(90deg, var(--border-hi), transparent);
+}
+
+/* ── 8. KALKULATORY & FORMULARZE ────────────────────────── */
+input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-family: var(--font-code);
+    outline: none;
+    transition: 0.2s;
+}
+
+input:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+
+.btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--r-md);
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 15px;
+}
+
+.btn:hover {
+    background: var(--red);
+    color: white;
+    box-shadow: 0 0 25px var(--red-glow);
+    transform: scale(1.02);
+}
+
+/* ── 9. WYKRESY I DESMOS ────────────────────────────────── */
+.graph-wrap {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    min-height: 400px;
+}
+
+#gCanvas {
+    width: 100%;
+    background: #050507;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+}
+
+/* ── 10. MOBILNOŚĆ ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .wrap { padding-top: 110px; }
+    .nb span { display: none; }
+    .graph-wrap { grid-template-columns: 1fr; }
+    h1.main { font-size: 3.5rem; letter-spacing: -2px; }
 }
