@@ -3,46 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Zymath Singularity — potężny silnik matematyczny.">
+    <meta name="description" content="Zymath Singularity v4 — Potężny silnik matematyczny">
     <meta name="theme-color" content="#D4A853">
-    <title>Zymath Singularity v4 | Ultimate</title>
-
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
+    <title>Zymath Singularity v4 | Ultimate Edition</title>
 
     <link rel="stylesheet" href="/style.css">
     <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js" defer></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
-    <script src="/main.js" defer></script>
     <script src="/engine.js" defer></script>
+    <script src="/main.js" defer></script>
 
     <script>
-        if (localStorage.getItem('zymath-theme') === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
+        if (localStorage.getItem('zymath_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
         function showTab(tabId, btn) {
             document.querySelectorAll('main > section').forEach(sec => sec.classList.remove('active'));
-            const target = document.getElementById(tabId);
-            if (target) target.classList.add('active');
+            document.getElementById(tabId)?.classList.add('active');
             document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-        }
-        function toggleTheme() {
-            const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('zymath-theme', newTheme);
-            const icon = document.getElementById('theme-icon');
-            if(icon) { icon.setAttribute('data-lucide', newTheme === 'light' ? 'moon' : 'sun'); lucide.createIcons(); }
+            if(btn) btn.classList.add('active');
         }
     </script>
 </head>
 <body>
-    <noscript><div style="position:fixed;inset:0;background:#0a0a0a;color:#D4A853;z-index:99999;display:flex;align-items:center;justify-content:center;"><h1>Włącz JavaScript</h1></div></noscript>
-
     <canvas id="particles-canvas"></canvas>
     <div id="snackbar-container"></div>
     <div id="ach-toast-container"></div>
+
+    <input type="text" id="security_trap" style="display:none" tabindex="-1" autocomplete="off">
 
     <header class="nav-wrap">
         <nav role="navigation">
@@ -51,23 +38,22 @@
             <button class="nb" onclick="showTab('kalkulatory', this)"><i data-lucide="calculator"></i><span>Kalkulatory</span></button>
             <button class="nb" onclick="showTab('engine', this)"><i data-lucide="cpu"></i><span>Engine</span></button>
             <button class="nb" onclick="showTab('zadania', this)"><i data-lucide="target"></i><span>Zadania</span></button>
-            
             <div class="nav-sep"></div>
-            <button class="nav-icon-btn" onclick="toggleTheme()" aria-label="Zmień motyw"><i data-lucide="sun" id="theme-icon"></i></button>
+            <button class="nav-icon-btn" id="search-btn" title="Szukaj (Ctrl+K)"><i data-lucide="search"></i></button>
+            <button class="nav-icon-btn" id="theme-btn" title="Zmień motyw"><i data-lucide="sun" id="theme-icon"></i></button>
         </nav>
     </header>
 
     <main class="wrap">
-
         <section id="home" class="active">
             <header class="hero">
                 <div class="hero-pill"><span class="hero-dot"></span> System Edukacyjny v4.0</div>
-                <h1 class="main">ZYMATH<br><span class="ac">SINGULARITY</span></h1>
-                <p class="hero-sub">Ostateczne kompendium matematyczne. Kalkulatory, zadania, teoria i potężny silnik obliczeniowy.</p>
+                <h1 class="main">ZYMATH<br><span class="ac" id="easter-egg-btn">SINGULARITY</span></h1>
+                <p class="hero-sub">Potężne kompendium matematyczne, zaawansowane kalkulatory i silnik numeryczny.</p>
                 <div class="stats-bar">
                     <div class="stat-pill"><b>8</b> działów teorii</div>
                     <div class="stat-pill"><b>12</b> kalkulatorów</div>
-                    <div class="stat-pill"><b>150</b> zadań / 3 poziomy</div>
+                    <div class="stat-pill"><b>150</b> zadań treningowych</div>
                 </div>
             </header>
 
@@ -75,41 +61,41 @@
             <div class="grid">
                 <article class="card"><div class="ci">
                     <div class="ct"><i data-lucide="pyramid"></i> Starożytność (3000 p.n.e. – 500 n.e.)</div>
-                    <div class="tb">Egipcjanie mierzyli Nil, Babilończycy stworzyli system sześćdziesiątkowy. Grecy (Pitagoras, Euklides) wprowadzili <b>dowód matematyczny</b> — wiedza stała się prawdą.</div>
-                    <div class="ex">a² + b² = c² — dowiedzione przez Euklidesa.</div>
+                    <div class="tb">Babilończycy wprowadzili system sześćdziesiątkowy. Grecy (Pitagoras, Euklides) wprowadzili <b>dowód matematyczny</b> — wiedza stała się prawdą absolutną.</div>
+                    <div class="ex">a² + b² = c²</div>
                 </div></article>
                 <article class="card"><div class="ci">
                     <div class="ct"><i data-lucide="globe"></i> Złoty Wiek Islamu (500–1400)</div>
-                    <div class="tb">Indie podały światu <b>zero</b> i system pozycyjny. Al-Chuwarizmi napisał pierwsze systematyczne omówienie <b>algebry</b>.</div>
+                    <div class="tb">Indie podały światu <b>zero</b> i system pozycyjny. Al-Chuwarizmi stworzył fundamenty <b>algebry</b>.</div>
                     <div class="ex">Al-jabr → Algebra. Al-Chuwarizmi → Algorytm.</div>
                 </div></article>
                 <article class="card"><div class="ci">
                     <div class="ct"><i data-lucide="flask-conical"></i> Rewolucja Naukowa (1500–1800)</div>
-                    <div class="tb">Newton i Leibniz wynaleźli <b>rachunek różniczkowy</b>. Euler sformalizował notację: \(e, \pi, i, f(x), \sum\).</div>
+                    <div class="tb">Newton i Leibniz wynaleźli <b>rachunek różniczkowy i całkowy</b>. Euler sformalizował notację: \(e, \pi, i, \sum\).</div>
                     <div class="ex">e^(iπ) + 1 = 0 — tożsamość Eulera.</div>
                 </div></article>
                 <article class="card"><div class="ci">
                     <div class="ct"><i data-lucide="binary"></i> Era Komputerów (1900–teraz)</div>
-                    <div class="tb">Gödel udowodnił (1931), że każdy spójny system zawiera <b>twierdzenia nierozstrzygalne</b>. Turing wymyślił maszyny liczące.</div>
-                    <div class="tip tip-blue"><i data-lucide="cpu"></i> Dziś kryptografia SSL/RSA opiera się na liczbach pierwszych.</div>
+                    <div class="tb">Gödel udowodnił (1931) istnienie <b>twierdzeń nierozstrzygalnych</b>. Turing zdefiniował matematyczne maszyny liczące.</div>
+                    <div class="tip tip-blue"><i data-lucide="cpu"></i> Kryptografia (RSA) opiera się na rozkładzie wielkich liczb pierwszych.</div>
                 </div></article>
             </div>
 
             <h2 class="sh"><i data-lucide="sparkles"></i> Anomalie Wszechświata <span class="tag">6 faktów</span></h2>
             <div class="grid-3">
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="equal"></i> 0.999... = 1</div><div class="tb">To nie przybliżenie, a absolutny fakt analityczny wynikający z szeregów geometrycznych. \(3 \times \frac{1}{3} = 0.999... = 1\).</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="infinite"></i> Hotel Hilberta</div><div class="tb">Hotel z nieskończenie wieloma pokojami. Przyjeżdża gość — przenosimy osobę z n do n+1. Powstaje wolne miejsce! ∞ + 1 = ∞.</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="atom"></i> Liczba Googolplex</div><div class="tb">Googolplex = \(10^{10^{100}}\). Zapis dziesiętny <b>nie zmieściłby się w całym Wszechświecie</b>, nawet zapisując 1 cyfrę na każdym atomie.</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="leaf"></i> Złota Proporcja φ</div><div class="tb">Iloraz kolejnych wyrazów ciągu Fibonacciego dąży do \(\varphi \approx 1.618\). Determinuje układ nasion i muszli w naturze.</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="wind"></i> Teoria Chaosu</div><div class="tb">Układ całkowicie deterministyczny może być <b>nieprzewidywalny</b>. Efekt motyla udowadnia, jak znikoma zmiana daje ogromny skutek.</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="dice-5"></i> Paradoks Urodzin</div><div class="tb">W grupie <b>23 osób</b> prawdopodobieństwo wspólnych urodzin dwóch osób wynosi ponad 50%. Przy 70 osobach wynosi aż 99.9%.</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="equal"></i> 0.999... = 1</div><div class="tb">Absolutny fakt analityczny: \(3 \times \frac{1}{3} = 0.999... = 1\).</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="infinite"></i> Hotel Hilberta</div><div class="tb">Nieskończony zajęty hotel ma miejsce dla nowego gościa (przesunięcie z n do n+1).</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="atom"></i> Liczba Googolplex</div><div class="tb">Zapis dziesiętny \(10^{10^{100}}\) nie zmieściłby się w całym Wszechświecie.</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="leaf"></i> Złota Proporcja φ</div><div class="tb">Iloraz ciągu Fibonacciego dąży do \(\varphi \approx 1.618\).</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="wind"></i> Teoria Chaosu</div><div class="tb">Efekt motyla udowadnia nieprzewidywalność deterministycznych układów.</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="dice-5"></i> Paradoks Urodzin</div><div class="tb">W grupie 23 osób szansa na wspólne urodziny przekracza 50%.</div></div></article>
             </div>
         </section>
 
         <section id="wiedza">
             <header class="hero" style="padding-bottom:10px">
                 <h1 class="main">Baza <span class="ac">Wiedzy</span></h1>
-                <p class="hero-sub">Kompletne Vademecum Maturalne.</p>
+                <p class="hero-sub">Kompletne Vademecum Wzorów.</p>
             </header>
 
             <h2 class="sh"><i data-lucide="atom"></i> Stałe Matematyczne</h2>
@@ -120,10 +106,10 @@
                 </div>
             </div></article>
 
-            <h2 class="sh"><i data-lucide="variable"></i> Algebra</h2>
+            <h2 class="sh"><i data-lucide="variable"></i> Algebra, Potęgi, Logarytmy</h2>
             <div class="grid">
                 <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="braces"></i> Wzory Skróconego Mnożenia</div>
+                    <div class="ct"><i data-lucide="braces"></i> Skrócone Mnożenie</div>
                     <div class="math-block">
                         $$(a \pm b)^2 = a^2 \pm 2ab + b^2$$
                         $$a^2 - b^2 = (a-b)(a+b)$$
@@ -148,6 +134,16 @@
                     </div>
                     <div class="tb">Wierzchołek: \( p = \frac{-b}{2a}, q = \frac{-\Delta}{4a} \)</div>
                 </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="logs"></i> Logarytmy</div>
+                    <div class="math-block">
+                        $$\log_a b = c \iff a^c = b$$
+                        $$\log_a(x \cdot y) = \log_a x + \log_a y$$
+                        $$\log_a \left(\frac{x}{y}\right) = \log_a x - \log_a y$$
+                        $$\log_a(x^n) = n \cdot \log_a x$$
+                    </div>
+                    <div class="ex">a > 0, a ≠ 1, b > 0. ln(x) to log_e(x).</div>
+                </div></article>
             </div>
 
             <h2 class="sh"><i data-lucide="triangle"></i> Trygonometria i Ciągi</h2>
@@ -159,6 +155,12 @@
                         $$\tan\alpha = \frac{\sin\alpha}{\cos\alpha}$$
                         $$\sin(2\alpha) = 2\sin\alpha\cos\alpha$$
                     </div>
+                    <table>
+                        <tr><th>Kąt α</th><th>30° (π/6)</th><th>45° (π/4)</th><th>60° (π/3)</th></tr>
+                        <tr><td><b>sin</b></td><td>1/2</td><td>√2/2</td><td>√3/2</td></tr>
+                        <tr><td><b>cos</b></td><td>√3/2</td><td>√2/2</td><td>1/2</td></tr>
+                        <tr><td><b>tan</b></td><td>√3/3</td><td>1</td><td>√3</td></tr>
+                    </table>
                 </div></article>
                 <article class="card"><div class="ci">
                     <div class="ct"><i data-lucide="move-right"></i> Ciąg Arytmetyczny</div>
@@ -183,6 +185,7 @@
                     <code>Kwadrat: P = a² | d = a√2</code>
                     <code>Trójkąt: P = ½·a·h</code>
                     <code>Koło: P = πr² | Obwód = 2πr</code>
+                    <code>Sześcian: V = a³ | Pc = 6a²</code>
                     <code>Walec: V = πr²H</code>
                     <code>Kula: V = ⁴⁄₃πr³</code>
                 </div></article>
@@ -192,15 +195,15 @@
                         Permutacje: $$P_n = n!$$
                         Kombinacje: $$C_n^k = \binom{n}{k} = \frac{n!}{k!(n-k)!}$$
                     </div>
-                    <div class="tb" style="border:none;">P(A) = |A| / |Ω|</div>
+                    <div class="tb" style="border:none;">Prawdopodobieństwo klasyczne: P(A) = |A| / |Ω|</div>
                 </div></article>
                 <article class="card"><div class="ci">
                     <div class="ct"><i data-lucide="trending-up"></i> Pochodne (Podstawy)</div>
                     <div class="math-block" style="font-size:1rem; line-height:2.2;">
+                        $$(c)' = 0$$
                         $$(x^n)' = n x^{n-1}$$
-                        $$(e^x)' = e^x$$
-                        $$(\sin x)' = \cos x$$
-                        $$(f \cdot g)' = f'g + fg'$$
+                        $$(e^x)' = e^x \quad (\ln x)' = \frac{1}{x}$$
+                        $$(\sin x)' = \cos x \quad (\cos x)' = -\sin x$$
                     </div>
                 </div></article>
             </div>
@@ -214,11 +217,11 @@
                     <div class="ct"><i data-lucide="line-chart"></i> Zymath Graph Engine 3.1</div>
                     <div class="graph-wrap">
                         <div>
-                            <div class="fn-row"><div class="fn-dot" style="background:var(--rust)"></div><input type="text" id="fn1" value="Math.sin(x)" oninput="drawGraph()"></div>
-                            <div class="fn-row"><div class="fn-dot" style="background:var(--gold)"></div><input type="text" id="fn2" placeholder="opcjonalna..." oninput="drawGraph()"></div>
+                            <div class="fn-row"><div class="fn-dot" style="background:var(--rust)"></div><input type="text" id="fn1" value="Math.sin(x)"></div>
+                            <div class="fn-row"><div class="fn-dot" style="background:var(--gold)"></div><input type="text" id="fn2" placeholder="opcjonalna..."></div>
                             <div class="ig" style="margin-top:16px;">
                                 <label for="gScale">Zoom osi</label>
-                                <input type="range" id="gScale" min="10" max="150" value="45" oninput="drawGraph()" style="width:100%">
+                                <input type="range" id="gScale" min="10" max="150" value="45" style="width:100%">
                             </div>
                         </div>
                         <canvas id="gCanvas"></canvas>
@@ -234,7 +237,7 @@
                         <input type="number" id="qb" placeholder="b">
                         <input type="number" id="qc" placeholder="c">
                     </div>
-                    <button class="btn" onclick="calcQuad()">Oblicz (Δ, x₁, x₂)</button>
+                    <button class="btn" id="btn-calc-quad">Oblicz (Δ, x₁, x₂)</button>
                     <div class="rb" id="quadRes" style="text-align:center;">Oczekiwanie…</div>
                 </div></article>
 
@@ -246,26 +249,31 @@
                     <div style="display:flex;gap:8px;">
                         <input type="number" id="s_a2" placeholder="a₂"><input type="number" id="s_b2" placeholder="b₂"><input type="number" id="s_c2" placeholder="c₂">
                     </div>
-                    <button class="btn" onclick="calcSystem()">Rozwiąż Metodą Cramera</button>
+                    <button class="btn" id="btn-calc-sys">Rozwiąż Metodą Cramera</button>
                     <div class="rb" id="sysRes" style="text-align:center;">Oczekiwanie…</div>
                 </div></article>
             </div>
+            
+            <h2 class="sh" style="margin-top:40px;"><i data-lucide="history"></i> Historia Obliczeń</h2>
+            <article class="card span"><div class="ci">
+                <div id="historyList"></div>
+            </div></article>
         </section>
 
         <section id="engine">
             <header class="hero" style="padding-bottom:10px">
                 <h1 class="main">NEXUS <span class="ac">Engine</span></h1>
-                <p class="hero-sub">Potężny parser matematyczny. Twoje połączenie z plikiem engine.js.</p>
+                <p class="hero-sub">Potężny parser matematyczny. Algorytmy numeryczne i algebraiczne.</p>
             </header>
             <article class="card span">
                 <div class="ci" style="text-align: center;">
-                    <div class="ct" style="justify-content: center;"><i data-lucide="cpu"></i> ZYMATH UNIVERSAL SOLVER</div>
-                    <div class="tb">Silnik potrafi przetworzyć surowe działania, funkcje trygonometryczne i potęgi.</div>
+                    <div id="engine-modes" style="display:flex; gap:10px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;"></div>
+                    
                     <div style="max-width: 600px; margin: 0 auto; width: 100%;">
-                        <input type="text" id="nexus-input" placeholder="Wpisz np: 2 + 2 * sin(Math.PI/2)" style="font-size: 1.2rem; padding: 16px; text-align: center;">
-                        <button class="btn" onclick="if(typeof runNexus === 'function') { runNexus(); } else { showSnackbar('Brak pliku engine.js', 'error'); }">Oblicz w silniku NEXUS</button>
-                        <div id="nexus-output" class="rb" style="font-size: 1.5rem; color: var(--gold); min-height: 80px; display: flex; align-items: center; justify-content: center;">
-                            Oczekiwanie na dane...
+                        <input type="text" id="engine-input" placeholder="Wpisz np: integral(x*x, 0, 3) lub 2+2*sin(pi/2)" style="font-size: 1.2rem; padding: 16px; text-align: center; width:100%; border:1px solid var(--border); background:var(--bg); color:var(--text); border-radius:var(--r-sm); outline:none;">
+                        <button class="btn" id="engine-compute-btn" style="margin-top:16px;">Analizuj za pomocą Silnika</button>
+                        <div id="engine-output" class="rb" style="font-size: 1.2rem; color: var(--gold); min-height: 80px; display: flex; flex-direction:column; align-items: center; justify-content: center; margin-top:20px;">
+                            Oczekiwanie na zapytanie...
                         </div>
                     </div>
                 </div>
@@ -275,39 +283,51 @@
         <section id="zadania">
             <header class="hero" style="padding-bottom:10px">
                 <h1 class="main">Zadania <span class="ac">Treningowe</span></h1>
-                <p class="hero-sub">150 dynamicznie generowanych zadań maturalnych i podstawowych.</p>
+                <p class="hero-sub">150 dynamicznie generowanych zadań. Zdobądź rangę Mistrza.</p>
             </header>
             
             <div class="task-top">
-                <div class="filters">
-                    <button class="f-btn on" onclick="filterTasks('all', this)">Wszystkie Poziomy</button>
-                    <button class="f-btn easy" onclick="filterTasks('easy', this)">Podstawy (Easy)</button>
-                    <button class="f-btn med" onclick="filterTasks('medium', this)">Matura (Medium)</button>
-                    <button class="f-btn hard" onclick="filterTasks('hard', this)">Rozszerzenie (Hard)</button>
+                <div class="filters" id="task-filters">
+                    <button class="f-btn on" data-filter="all">Wszystkie Poziomy</button>
+                    <button class="f-btn easy" data-filter="easy">Podstawy (Easy)</button>
+                    <button class="f-btn med" data-filter="medium">Matura (Medium)</button>
+                    <button class="f-btn hard" data-filter="hard">Rozszerzenie (Hard)</button>
                 </div>
                 <div class="score-box">
                     <div class="score-pill"><span class="score-dot"></span> EXP: <span id="scoreVal">0</span></div>
-                    <div style="font-family:var(--font-code);font-size:0.75rem;color:var(--muted-hi);">Poziom <span id="lvlVal">1</span> | Rozwiązane: <span id="solvedVal">0</span></div>
+                    <div style="font-family:var(--font-code);font-size:0.75rem;color:var(--muted-hi);">Poziom <span id="lvlVal">1</span> | Rozwiązane: <span id="solvedVal">0</span>/150</div>
                     <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
                 </div>
             </div>
 
             <div id="task-container" class="grid"></div>
             
-            <div class="math-kbd-section" style="margin-top:30px;">
-                <button class="kbd-toggle" onclick="toggleMathKbd()">⌨ Pokaż klawiaturę matematyczną</button>
+            <div class="math-kbd-section" style="margin-top:40px;">
+                <button class="kbd-toggle" id="kbd-toggle-btn">⌨ Pokaż klawiaturę matematyczną</button>
                 <div id="math-kbd" class="math-kbd-wrap">
-                    <button class="kbd-key" onclick="insertMath('√')">√</button>
-                    <button class="kbd-key" onclick="insertMath('π')">π</button>
-                    <button class="kbd-key" onclick="insertMath('^2')">x²</button>
-                    <button class="kbd-key" onclick="insertMath('/')">/</button>
+                    <button class="kbd-key" data-char="√">√</button>
+                    <button class="kbd-key" data-char="π">π</button>
+                    <button class="kbd-key" data-char="^2">x²</button>
+                    <button class="kbd-key" data-char="/">/</button>
+                    <button class="kbd-key" data-char="sin()">sin</button>
+                    <button class="kbd-key" data-char="cos()">cos</button>
                 </div>
             </div>
         </section>
-
     </main>
 
-    <div id="pomodoro" onclick="togglePomodoro()">
+    <div id="search-overlay">
+        <div class="search-box">
+            <div class="search-input-wrap">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" placeholder="Szukaj wzorów i funkcji..." autocomplete="off">
+                <button class="search-close-btn" id="search-close">ESC</button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <div id="pomodoro" title="Kliknij, aby uruchomić/zatrzymać timer nauki">
         <i data-lucide="timer"></i> <span id="pom-timer">25:00</span>
     </div>
 
