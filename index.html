@@ -3,77 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Zymath Singularity — matematyczny silnik edukacyjny. Teoria, kalkulatory, zadania.">
+    <meta name="description" content="Zymath Singularity — potężny silnik matematyczny.">
     <meta name="theme-color" content="#D4A853">
-    <title>Zymath Singularity v4 | Wersja Pełna</title>
+    <title>Zymath Singularity v4 | Ultimate</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
     <link rel="stylesheet" href="/style.css">
-    
     <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js" defer></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script src="/main.js" defer></script>
+    <script src="/engine.js" defer></script>
 
     <script>
         if (localStorage.getItem('zymath-theme') === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
         }
-
         function showTab(tabId, btn) {
-            const sections = document.querySelectorAll('main > section');
-            sections.forEach(sec => sec.classList.remove('active'));
-            
-            const targetSection = document.getElementById(tabId);
-            if (targetSection) targetSection.classList.add('active');
-            
-            const buttons = document.querySelectorAll('.nb');
-            buttons.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+            document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
         }
-
         function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
+            const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('zymath-theme', newTheme);
-            
             const icon = document.getElementById('theme-icon');
-            if(icon) {
-                icon.setAttribute('data-lucide', newTheme === 'light' ? 'moon' : 'sun');
-                lucide.createIcons();
-            }
+            if(icon) { icon.setAttribute('data-lucide', newTheme === 'light' ? 'moon' : 'sun'); lucide.createIcons(); }
         }
     </script>
 </head>
 <body>
-    <noscript>
-        <div style="position:fixed;inset:0;background:#0a0a0a;color:#D4A853;z-index:999999;display:flex;align-items:center;justify-content:center;text-align:center;">
-            <h1>Włącz JavaScript, aby używać Zymath.</h1>
-        </div>
-    </noscript>
+    <noscript><div style="position:fixed;inset:0;background:#0a0a0a;color:#D4A853;z-index:99999;display:flex;align-items:center;justify-content:center;"><h1>Włącz JavaScript</h1></div></noscript>
 
-    <canvas id="particles-canvas" aria-hidden="true"></canvas>
-
-    <div id="trap-container" style="display:none !important;" aria-hidden="true">
-        <input type="text" id="security_trap" tabindex="-1" autocomplete="off">
-    </div>
+    <canvas id="particles-canvas"></canvas>
+    <div id="snackbar-container"></div>
+    <div id="ach-toast-container"></div>
 
     <header class="nav-wrap">
-        <nav role="navigation" aria-label="Główna nawigacja">
+        <nav role="navigation">
             <button class="nb active" onclick="showTab('home', this)"><i data-lucide="zap"></i><span>Start</span></button>
             <button class="nb" onclick="showTab('wiedza', this)"><i data-lucide="book-open"></i><span>Wiedza</span></button>
-            <button class="nb" onclick="showTab('kalkulatory', this)"><i data-lucide="cpu"></i><span>Terminal</span></button>
+            <button class="nb" onclick="showTab('kalkulatory', this)"><i data-lucide="calculator"></i><span>Kalkulatory</span></button>
+            <button class="nb" onclick="showTab('engine', this)"><i data-lucide="cpu"></i><span>Engine</span></button>
             <button class="nb" onclick="showTab('zadania', this)"><i data-lucide="target"></i><span>Zadania</span></button>
             
-            <div class="nav-sep" aria-hidden="true"></div>
-            
-            <button class="nav-icon-btn" onclick="toggleTheme()" title="Zmień motyw" aria-label="Zmień motyw">
-                <i data-lucide="sun" id="theme-icon"></i>
-            </button>
+            <div class="nav-sep"></div>
+            <button class="nav-icon-btn" onclick="toggleTheme()" aria-label="Zmień motyw"><i data-lucide="sun" id="theme-icon"></i></button>
         </nav>
     </header>
 
@@ -83,7 +63,7 @@
             <header class="hero">
                 <div class="hero-pill"><span class="hero-dot"></span> System Edukacyjny v4.0</div>
                 <h1 class="main">ZYMATH<br><span class="ac">SINGULARITY</span></h1>
-                <p class="hero-sub">Kompletne kompendium wiedzy matematycznej. Od historii liczb, przez zaawansowaną algebrę, aż po zadania maturalne.</p>
+                <p class="hero-sub">Ostateczne kompendium matematyczne. Kalkulatory, zadania, teoria i potężny silnik obliczeniowy.</p>
                 <div class="stats-bar">
                     <div class="stat-pill"><b>8</b> działów teorii</div>
                     <div class="stat-pill"><b>12</b> kalkulatorów</div>
@@ -93,284 +73,141 @@
 
             <h2 class="sh"><i data-lucide="history"></i> Kroniki Matematyki <span class="tag">4 epoki</span></h2>
             <div class="grid">
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="pyramid"></i> Starożytność (3000 p.n.e. – 500 n.e.)</div>
-                        <div class="tb">Matematyka powstała z potrzeby — Egipcjanie mierzyli Nil i budowali piramidy, Babilończycy stworzyli system sześćdziesiątkowy (używany do dziś w zegarach). Przełom: Grecy (Pitagoras, Euklides) wprowadzili <b>dowód matematyczny</b>.</div>
-                        <div class="ex">Euklides udowodnił, że istnieje nieskończenie wiele liczb pierwszych.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="globe"></i> Złoty Wiek Islamu (500–1400)</div>
-                        <div class="tb">Indie podarowały światu <b>zero</b> jako pełnoprawną liczbę i system pozycyjny. Al-Chuwarizmi napisał pierwsze systematyczne omówienie <b>algebry</b>. Bez tego tłumaczenia Europa nie miałaby podstaw do Rewolucji Naukowej.</div>
-                        <div class="ex">Al-jabr → Algebra. Al-Chuwarizmi → Algorytm.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="flask-conical"></i> Rewolucja Naukowa (1500–1800)</div>
-                        <div class="tb">Newton i Leibniz niezależnie wynaleźli <b>rachunek różniczkowy i całkowy</b>. Pozwoliło to obliczać prędkości chwilowe i modelować ruch planet. Euler sformalizował notację: \(e, \pi, i, f(x), \sum, \Delta\).</div>
-                        <div class="ex">e^(iπ) + 1 = 0 — tożsamość Eulera.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="binary"></i> Era Komputerów (1900–teraz)</div>
-                        <div class="tb">Gödel udowodnił (1931), że każdy spójny system aksjomatyczny zawiera <b>twierdzenia nierozstrzygalne</b>. Alan Turing stworzył matematyczne podstawy działania komputerów.</div>
-                        <div class="tip tip-blue"><i data-lucide="cpu"></i> Dziś kryptografia i protokół HTTPS (RSA) opierają się na trudności faktoryzacji wielkich liczb pierwszych.</div>
-                    </div>
-                </article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="pyramid"></i> Starożytność (3000 p.n.e. – 500 n.e.)</div>
+                    <div class="tb">Egipcjanie mierzyli Nil, Babilończycy stworzyli system sześćdziesiątkowy. Grecy (Pitagoras, Euklides) wprowadzili <b>dowód matematyczny</b> — wiedza stała się prawdą.</div>
+                    <div class="ex">a² + b² = c² — dowiedzione przez Euklidesa.</div>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="globe"></i> Złoty Wiek Islamu (500–1400)</div>
+                    <div class="tb">Indie podały światu <b>zero</b> i system pozycyjny. Al-Chuwarizmi napisał pierwsze systematyczne omówienie <b>algebry</b>.</div>
+                    <div class="ex">Al-jabr → Algebra. Al-Chuwarizmi → Algorytm.</div>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="flask-conical"></i> Rewolucja Naukowa (1500–1800)</div>
+                    <div class="tb">Newton i Leibniz wynaleźli <b>rachunek różniczkowy</b>. Euler sformalizował notację: \(e, \pi, i, f(x), \sum\).</div>
+                    <div class="ex">e^(iπ) + 1 = 0 — tożsamość Eulera.</div>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="binary"></i> Era Komputerów (1900–teraz)</div>
+                    <div class="tb">Gödel udowodnił (1931), że każdy spójny system zawiera <b>twierdzenia nierozstrzygalne</b>. Turing wymyślił maszyny liczące.</div>
+                    <div class="tip tip-blue"><i data-lucide="cpu"></i> Dziś kryptografia SSL/RSA opiera się na liczbach pierwszych.</div>
+                </div></article>
             </div>
 
             <h2 class="sh"><i data-lucide="sparkles"></i> Anomalie Wszechświata <span class="tag">6 faktów</span></h2>
             <div class="grid-3">
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="equal"></i> 0.999... = 1</div>
-                        <div class="tb">To nie przybliżenie, a absolutny fakt. Skoro \(\frac{1}{3} = 0.333...\), to mnożąc obie strony przez 3 otrzymujemy \(\frac{3}{3} = 0.999...\), a \(\frac{3}{3} = 1\). Formalnie wynika to z granicy szeregu geometrycznego.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="infinite"></i> Hotel Hilberta</div>
-                        <div class="tb">Wyobraź sobie hotel z nieskończenie wieloma pokojami, w którym wszystkie są zajęte. Przyjeżdża nowy gość — przenosimy osobę z pokoju n do n+1. Powstaje wolne miejsce! ∞ + 1 = ∞.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="atom"></i> Liczba Googolplex</div>
-                        <div class="tb">Googol = \(10^{100}\). Googolplex to 1 i googol zer (\(10^{10^{100}}\)). Jest tak potężna, że jej pełny zapis dziesiętny <b>nie zmieściłby się w całym obserwowalnym Wszechświecie</b>, nawet gdyby na każdym atomie zapisać jedną cyfrę.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="leaf"></i> Złota Proporcja φ</div>
-                        <div class="tb">Ciąg Fibonacciego: 1, 1, 2, 3, 5, 8, 13... Iloraz kolejnych wyrazów: \(\frac{F_{n+1}}{F_n} \to \varphi \approx 1.618\). Ten ułamek determinuje układ liści na łodygach, nasion w słoneczniku czy proporcje ciała człowieka.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="wind"></i> Teoria Chaosu</div>
-                        <div class="tb">Układ całkowicie deterministyczny (fizyka bez losowości) może być <b>nieprzewidywalny</b>. Tzw. "Efekt motyla" Lorenza ukazuje, jak nieskończenie mała zmiana parametrów początkowych daje diametralnie różne wyniki.</div>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="dice-5"></i> Paradoks Urodzin</div>
-                        <div class="tb">W grupie składającej się z zaledwie <b>23 osób</b>, prawdopodobieństwo tego, że co najmniej dwie osoby mają urodziny w dokładnie tym samym dniu w roku, przekracza 50%. Przy 70 osobach wynosi aż 99.9%.</div>
-                    </div>
-                </article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="equal"></i> 0.999... = 1</div><div class="tb">To nie przybliżenie, a absolutny fakt analityczny wynikający z szeregów geometrycznych. \(3 \times \frac{1}{3} = 0.999... = 1\).</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="infinite"></i> Hotel Hilberta</div><div class="tb">Hotel z nieskończenie wieloma pokojami. Przyjeżdża gość — przenosimy osobę z n do n+1. Powstaje wolne miejsce! ∞ + 1 = ∞.</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="atom"></i> Liczba Googolplex</div><div class="tb">Googolplex = \(10^{10^{100}}\). Zapis dziesiętny <b>nie zmieściłby się w całym Wszechświecie</b>, nawet zapisując 1 cyfrę na każdym atomie.</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="leaf"></i> Złota Proporcja φ</div><div class="tb">Iloraz kolejnych wyrazów ciągu Fibonacciego dąży do \(\varphi \approx 1.618\). Determinuje układ nasion i muszli w naturze.</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="wind"></i> Teoria Chaosu</div><div class="tb">Układ całkowicie deterministyczny może być <b>nieprzewidywalny</b>. Efekt motyla udowadnia, jak znikoma zmiana daje ogromny skutek.</div></div></article>
+                <article class="card"><div class="ci"><div class="ct"><i data-lucide="dice-5"></i> Paradoks Urodzin</div><div class="tb">W grupie <b>23 osób</b> prawdopodobieństwo wspólnych urodzin dwóch osób wynosi ponad 50%. Przy 70 osobach wynosi aż 99.9%.</div></div></article>
             </div>
         </section>
 
         <section id="wiedza">
             <header class="hero" style="padding-bottom:10px">
                 <h1 class="main">Baza <span class="ac">Wiedzy</span></h1>
-                <p class="hero-sub">Twoje ostateczne kompendium wzorów przed egzaminem.</p>
+                <p class="hero-sub">Kompletne Vademecum Maturalne.</p>
             </header>
 
-            <h2 class="sh"><i data-lucide="atom"></i> Fundamentalne Stałe</h2>
-            <article class="card span">
-                <div class="ci">
-                    <div class="tb">Stałe matematyczne to liczby niewymierne i przestępne pojawiające się we wzorach opisujących nasz Wszechświat.</div>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
-                        <div>
-                            <code>π ≈ 3.1415926535... — Stosunek obwodu koła do średnicy</code>
-                            <code>e ≈ 2.7182818284... — Podstawa logarytmu naturalnego</code>
-                        </div>
-                        <div>
-                            <code>φ = (1+√5)/2 ≈ 1.61803... — Złota proporcja</code>
-                            <code>i = √(-1) — Jednostka urojona (liczby zespolone)</code>
-                        </div>
-                    </div>
+            <h2 class="sh"><i data-lucide="atom"></i> Stałe Matematyczne</h2>
+            <article class="card span"><div class="ci">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                    <div><code>π ≈ 3.14159... — Stosunek obwodu do średnicy</code><code>e ≈ 2.71828... — Podstawa logarytmu naturalnego</code></div>
+                    <div><code>φ ≈ 1.61803... — Złota proporcja</code><code>i = √(-1) — Jednostka urojona</code></div>
                 </div>
-            </article>
+            </div></article>
 
-            <h2 class="sh"><i data-lucide="variable"></i> Algebra i Potęgi</h2>
+            <h2 class="sh"><i data-lucide="variable"></i> Algebra</h2>
             <div class="grid">
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="braces"></i> Wzory Skróconego Mnożenia</div>
-                        <div class="math-block">
-                            $$(a + b)^2 = a^2 + 2ab + b^2$$
-                            $$(a - b)^2 = a^2 - 2ab + b^2$$
-                            $$a^2 - b^2 = (a-b)(a+b)$$
-                            $$(a \pm b)^3 = a^3 \pm 3a^2b + 3ab^2 \pm b^3$$
-                            $$a^3 \pm b^3 = (a \pm b)(a^2 \mp ab + b^2)$$
-                        </div>
-                        <div class="tip tip-green"><i data-lucide="check-circle"></i> Pamiętaj: (a+b)² to NIE jest a² + b²! Nie gub 2ab.</div>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="braces"></i> Wzory Skróconego Mnożenia</div>
+                    <div class="math-block">
+                        $$(a \pm b)^2 = a^2 \pm 2ab + b^2$$
+                        $$a^2 - b^2 = (a-b)(a+b)$$
+                        $$(a \pm b)^3 = a^3 \pm 3a^2b + 3ab^2 \pm b^3$$
+                        $$a^3 \pm b^3 = (a \pm b)(a^2 \mp ab + b^2)$$
                     </div>
-                </article>
-                
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="zap"></i> Potęgi i Pierwiastki</div>
-                        <div class="math-block">
-                            $$a^m \cdot a^n = a^{m+n}$$
-                            $$\frac{a^m}{a^n} = a^{m-n}$$
-                            $$(a^m)^n = a^{m \cdot n}$$
-                            $$a^{-n} = \frac{1}{a^n} \quad (a \neq 0)$$
-                            $$a^{\frac{m}{n}} = \sqrt[n]{a^m}$$
-                        </div>
-                        <div class="ex">Np. 8^(2/3) = (∛8)² = 2² = 4</div>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="zap"></i> Potęgi i Pierwiastki</div>
+                    <div class="math-block">
+                        $$a^m \cdot a^n = a^{m+n}$$
+                        $$(a^m)^n = a^{m \cdot n}$$
+                        $$a^{\frac{m}{n}} = \sqrt[n]{a^m}$$
                     </div>
-                </article>
-
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="activity"></i> Równanie Kwadratowe</div>
-                        <div class="math-block">
-                            $$f(x) = ax^2 + bx + c$$
-                            $$\Delta = b^2 - 4ac$$
-                            $$x_{1,2} = \frac{-b \pm \sqrt{\Delta}}{2a}$$
-                        </div>
-                        <div class="tb">
-                            <b>Współrzędne wierzchołka:</b> \( p = \frac{-b}{2a}, \quad q = \frac{-\Delta}{4a} \)<br>
-                            <b>Postać iloczynowa:</b> \( y = a(x-x_1)(x-x_2) \)
-                        </div>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="activity"></i> Równanie Kwadratowe</div>
+                    <div class="math-block">
+                        $$y = ax^2 + bx + c$$
+                        $$\Delta = b^2 - 4ac$$
+                        $$x_{1,2} = \frac{-b \pm \sqrt{\Delta}}{2a}$$
                     </div>
-                </article>
-                
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="logs"></i> Logarytmy</div>
-                        <div class="math-block">
-                            $$\log_a b = c \iff a^c = b$$
-                            $$\log_a(x \cdot y) = \log_a x + \log_a y$$
-                            $$\log_a \left(\frac{x}{y}\right) = \log_a x - \log_a y$$
-                            $$\log_a(x^n) = n \cdot \log_a x$$
-                            $$\log_a b = \frac{\log_c b}{\log_c a}$$
-                        </div>
-                        <div class="ex">Ważne: a > 0, a ≠ 1, b > 0. Wyjątek logarytm naturalny (ln x) = log_e(x).</div>
-                    </div>
-                </article>
+                    <div class="tb">Wierzchołek: \( p = \frac{-b}{2a}, q = \frac{-\Delta}{4a} \)</div>
+                </div></article>
             </div>
 
-            <h2 class="sh"><i data-lucide="triangle"></i> Trygonometria</h2>
-            <article class="card span">
-                <div class="ci">
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-                        <div>
-                            <div class="ct"><i data-lucide="equal"></i> Tożsamości i Związki</div>
-                            <div class="math-block">
-                                $$\sin^2\alpha + \cos^2\alpha = 1 \text{ (Jedynka)}$$
-                                $$\tan\alpha = \frac{\sin\alpha}{\cos\alpha}$$
-                                $$\sin(2\alpha) = 2\sin\alpha\cos\alpha$$
-                                $$\cos(2\alpha) = \cos^2\alpha - \sin^2\alpha$$
-                            </div>
-                            <div class="tip tip-blue"><i data-lucide="info"></i> Twierdzenie Sinusów: a/sin(α) = b/sin(β) = c/sin(γ) = 2R</div>
-                            <div class="tip tip-blue"><i data-lucide="info"></i> Twierdzenie Cosinusów: c² = a² + b² - 2ab·cos(γ)</div>
-                        </div>
-                        <div>
-                            <div class="ct"><i data-lucide="table"></i> Tabela Wartości</div>
-                            <table>
-                                <tr><th>Kąt α</th><th>30° (π/6)</th><th>45° (π/4)</th><th>60° (π/3)</th></tr>
-                                <tr><td><b>sin α</b></td><td>1/2</td><td>√2/2</td><td>√3/2</td></tr>
-                                <tr><td><b>cos α</b></td><td>√3/2</td><td>√2/2</td><td>1/2</td></tr>
-                                <tr><td><b>tan α</b></td><td>√3/3</td><td>1</td><td>√3</td></tr>
-                            </table>
-                            <div class="tb" style="border:none;">Dla 0°: sin=0, cos=1, tan=0.<br>Dla 90°: sin=1, cos=0, tan=nieistnieje.</div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <h2 class="sh"><i data-lucide="list-ordered"></i> Ciągi Liczbowe</h2>
+            <h2 class="sh"><i data-lucide="triangle"></i> Trygonometria i Ciągi</h2>
             <div class="grid">
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="move-right"></i> Ciąg Arytmetyczny</div>
-                        <div class="tb">Kolejny wyraz powstaje przez dodanie stałej różnicy (r).</div>
-                        <div class="math-block">
-                            $$a_n = a_1 + (n-1)r$$
-                            $$a_n = \frac{a_{n-1} + a_{n+1}}{2}$$
-                            $$S_n = \frac{a_1 + a_n}{2} \cdot n$$
-                        </div>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="triangle"></i> Tożsamości Trygonometryczne</div>
+                    <div class="math-block">
+                        $$\sin^2\alpha + \cos^2\alpha = 1$$
+                        $$\tan\alpha = \frac{\sin\alpha}{\cos\alpha}$$
+                        $$\sin(2\alpha) = 2\sin\alpha\cos\alpha$$
                     </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="git-branch"></i> Ciąg Geometryczny</div>
-                        <div class="tb">Kolejny wyraz powstaje przez pomnożenie przez stały iloraz (q).</div>
-                        <div class="math-block">
-                            $$a_n = a_1 \cdot q^{n-1}$$
-                            $$a_n^2 = a_{n-1} \cdot a_{n+1}$$
-                            $$S_n = a_1 \frac{1 - q^n}{1 - q} \quad (q \neq 1)$$
-                        </div>
-                        <div class="ex">Szereg geometryczny (suma ∞ wyrazów gdy |q| < 1): S = a₁ / (1 - q)</div>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="move-right"></i> Ciąg Arytmetyczny</div>
+                    <div class="math-block">
+                        $$a_n = a_1 + (n-1)r$$
+                        $$S_n = \frac{a_1 + a_n}{2} \cdot n$$
                     </div>
-                </article>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="git-branch"></i> Ciąg Geometryczny</div>
+                    <div class="math-block">
+                        $$a_n = a_1 \cdot q^{n-1}$$
+                        $$S_n = a_1 \frac{1 - q^n}{1 - q}$$
+                    </div>
+                </div></article>
             </div>
 
-            <h2 class="sh"><i data-lucide="shapes"></i> Geometria</h2>
+            <h2 class="sh"><i data-lucide="shapes"></i> Geometria, Kombinatoryka i Analiza</h2>
             <div class="grid-3">
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="square"></i> Pola Figur 2D</div>
-                        <code>Kwadrat: P = a² | d = a√2</code>
-                        <code>Prostokąt: P = a·b</code>
-                        <code>Trójkąt: P = ½·a·h = ½·a·b·sin(α)</code>
-                        <code>Tr. Równoboczny: P = a²√3 / 4</code>
-                        <code>Romb: P = a·h = ½·e·f</code>
-                        <code>Trapez: P = ½(a+b)·h</code>
-                        <code>Koło: P = πr² | Obwód = 2πr</code>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="square"></i> Figury i Bryły</div>
+                    <code>Kwadrat: P = a² | d = a√2</code>
+                    <code>Trójkąt: P = ½·a·h</code>
+                    <code>Koło: P = πr² | Obwód = 2πr</code>
+                    <code>Walec: V = πr²H</code>
+                    <code>Kula: V = ⁴⁄₃πr³</code>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="git-merge"></i> Kombinatoryka</div>
+                    <div class="math-block" style="font-size:1rem; line-height:2.2;">
+                        Permutacje: $$P_n = n!$$
+                        Kombinacje: $$C_n^k = \binom{n}{k} = \frac{n!}{k!(n-k)!}$$
                     </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="box"></i> Pola i Objętości 3D</div>
-                        <code>Sześcian: V = a³ | Pc = 6a²</code>
-                        <code>Prostopadłościan: V = a·b·c</code>
-                        <code>Graniastosłup: V = Pp·H</code>
-                        <code>Ostrosłup: V = ⅓·Pp·H</code>
-                        <code>Walec: V = πr²H | Pb = 2πrH</code>
-                        <code>Stożek: V = ⅓πr²H | Pb = πrl</code>
-                        <code>Kula: V = ⁴⁄₃πr³ | Pc = 4πr²</code>
+                    <div class="tb" style="border:none;">P(A) = |A| / |Ω|</div>
+                </div></article>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="trending-up"></i> Pochodne (Podstawy)</div>
+                    <div class="math-block" style="font-size:1rem; line-height:2.2;">
+                        $$(x^n)' = n x^{n-1}$$
+                        $$(e^x)' = e^x$$
+                        $$(\sin x)' = \cos x$$
+                        $$(f \cdot g)' = f'g + fg'$$
                     </div>
-                </article>
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="git-merge"></i> Kombinatoryka</div>
-                        <div class="math-block" style="font-size:1rem; line-height:2.2;">
-                            Permutacje: $$P_n = n!$$
-                            Kombinacje: $$C_n^k = \binom{n}{k} = \frac{n!}{k!(n-k)!}$$
-                            Wariacje (bez powt.): $$V_n^k = \frac{n!}{(n-k)!}$$
-                        </div>
-                        <div class="tb" style="border:none;">Prawdopodobieństwo klasyczne: P(A) = |A| / |Ω|</div>
-                    </div>
-                </article>
+                </div></article>
             </div>
-            
-            <h2 class="sh"><i data-lucide="trending-up"></i> Rachunek Różniczkowy</h2>
-            <article class="card span">
-                <div class="ci">
-                    <div class="ct"><i data-lucide="activity"></i> Pochodne Funkcji (Podstawy)</div>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-                        <div>
-                            <div class="math-block">
-                                $$(c)' = 0$$
-                                $$(x^n)' = n x^{n-1}$$
-                                $$(e^x)' = e^x \quad \text{oraz} \quad (\ln x)' = \frac{1}{x}$$
-                                $$(\sin x)' = \cos x \quad (\cos x)' = -\sin x$$
-                            </div>
-                        </div>
-                        <div>
-                            <div class="math-block">
-                                $$(f + g)' = f' + g'$$
-                                $$(f \cdot g)' = f'g + fg'$$
-                                $$\left(\frac{f}{g}\right)' = \frac{f'g - fg'}{g^2}$$
-                                $$(f(g(x)))' = f'(g(x)) \cdot g'(x)$$
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
         </section>
 
         <section id="kalkulatory">
-            <h2 class="sh"><i data-lucide="cpu"></i> Terminal Kalkulacyjny</h2>
+            <h2 class="sh"><i data-lucide="calculator"></i> Terminal Kalkulacyjny</h2>
 
             <article class="card span" style="margin-bottom:24px;">
                 <div class="ci">
@@ -380,10 +217,9 @@
                             <div class="fn-row"><div class="fn-dot" style="background:var(--rust)"></div><input type="text" id="fn1" value="Math.sin(x)" oninput="drawGraph()"></div>
                             <div class="fn-row"><div class="fn-dot" style="background:var(--gold)"></div><input type="text" id="fn2" placeholder="opcjonalna..." oninput="drawGraph()"></div>
                             <div class="ig" style="margin-top:16px;">
-                                <label for="gScale">Zoom układu współrzędnych</label>
+                                <label for="gScale">Zoom osi</label>
                                 <input type="range" id="gScale" min="10" max="150" value="45" oninput="drawGraph()" style="width:100%">
                             </div>
-                            <div class="graph-hint">Przesuń myszką po płótnie, by nawigować. Wpisuj funkcje JS (np. <code>x*x</code>, <code>Math.cos(x)</code>).</div>
                         </div>
                         <canvas id="gCanvas"></canvas>
                     </div>
@@ -391,78 +227,87 @@
             </article>
 
             <div class="grid">
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="target"></i> Analiza Funkcji Kwadratowej</div>
-                        <div class="tb">Wylicza deltę, miejsca zerowe i wierzchołek.</div>
-                        <div style="display:flex;gap:8px;">
-                            <div style="flex:1"><label>Wsp. a</label><input type="number" id="qa" placeholder="1"></div>
-                            <div style="flex:1"><label>Wsp. b</label><input type="number" id="qb" placeholder="-4"></div>
-                            <div style="flex:1"><label>Wsp. c</label><input type="number" id="qc" placeholder="3"></div>
-                        </div>
-                        <button class="btn" onclick="calcQuad()">Oblicz Właściwości</button>
-                        <div class="rb" id="quadRes" style="text-align:center;color:var(--muted-hi)">Oczekiwanie na parametry…</div>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="target"></i> Analiza Funkcji Kwadratowej</div>
+                    <div style="display:flex;gap:8px;">
+                        <input type="number" id="qa" placeholder="a">
+                        <input type="number" id="qb" placeholder="b">
+                        <input type="number" id="qc" placeholder="c">
                     </div>
-                </article>
+                    <button class="btn" onclick="calcQuad()">Oblicz (Δ, x₁, x₂)</button>
+                    <div class="rb" id="quadRes" style="text-align:center;">Oczekiwanie…</div>
+                </div></article>
 
-                <article class="card">
-                    <div class="ci">
-                        <div class="ct"><i data-lucide="git-branch-plus"></i> Układ Równań Liniowych 2x2</div>
-                        <div class="tb">Oblicza X i Y metodą wyznaczników (Cramer).</div>
-                        <div style="display:flex;gap:8px;margin-bottom:8px">
-                            <input type="number" id="s_a1" placeholder="a₁">
-                            <input type="number" id="s_b1" placeholder="b₁">
-                            <input type="number" id="s_c1" placeholder="c₁ (wynik)">
-                        </div>
-                        <div style="display:flex;gap:8px;">
-                            <input type="number" id="s_a2" placeholder="a₂">
-                            <input type="number" id="s_b2" placeholder="b₂">
-                            <input type="number" id="s_c2" placeholder="c₂ (wynik)">
-                        </div>
-                        <button class="btn" onclick="calcSystem()">Rozwiąż Układ</button>
-                        <div class="rb" id="sysRes" style="text-align:center;color:var(--muted-hi)">Oczekiwanie na równania…</div>
+                <article class="card"><div class="ci">
+                    <div class="ct"><i data-lucide="git-branch-plus"></i> Układ Równań Liniowych 2x2</div>
+                    <div style="display:flex;gap:8px;margin-bottom:8px">
+                        <input type="number" id="s_a1" placeholder="a₁"><input type="number" id="s_b1" placeholder="b₁"><input type="number" id="s_c1" placeholder="c₁">
                     </div>
-                </article>
+                    <div style="display:flex;gap:8px;">
+                        <input type="number" id="s_a2" placeholder="a₂"><input type="number" id="s_b2" placeholder="b₂"><input type="number" id="s_c2" placeholder="c₂">
+                    </div>
+                    <button class="btn" onclick="calcSystem()">Rozwiąż Metodą Cramera</button>
+                    <div class="rb" id="sysRes" style="text-align:center;">Oczekiwanie…</div>
+                </div></article>
             </div>
+        </section>
+
+        <section id="engine">
+            <header class="hero" style="padding-bottom:10px">
+                <h1 class="main">NEXUS <span class="ac">Engine</span></h1>
+                <p class="hero-sub">Potężny parser matematyczny. Twoje połączenie z plikiem engine.js.</p>
+            </header>
+            <article class="card span">
+                <div class="ci" style="text-align: center;">
+                    <div class="ct" style="justify-content: center;"><i data-lucide="cpu"></i> ZYMATH UNIVERSAL SOLVER</div>
+                    <div class="tb">Silnik potrafi przetworzyć surowe działania, funkcje trygonometryczne i potęgi.</div>
+                    <div style="max-width: 600px; margin: 0 auto; width: 100%;">
+                        <input type="text" id="nexus-input" placeholder="Wpisz np: 2 + 2 * sin(Math.PI/2)" style="font-size: 1.2rem; padding: 16px; text-align: center;">
+                        <button class="btn" onclick="if(typeof runNexus === 'function') { runNexus(); } else { showSnackbar('Brak pliku engine.js', 'error'); }">Oblicz w silniku NEXUS</button>
+                        <div id="nexus-output" class="rb" style="font-size: 1.5rem; color: var(--gold); min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                            Oczekiwanie na dane...
+                        </div>
+                    </div>
+                </div>
+            </article>
         </section>
 
         <section id="zadania">
             <header class="hero" style="padding-bottom:10px">
                 <h1 class="main">Zadania <span class="ac">Treningowe</span></h1>
-                <p class="hero-sub">Trenuj swój umysł. Rozwiązuj interaktywne przykłady, aby zdobywać punkty doświadczenia (EXP).</p>
+                <p class="hero-sub">150 dynamicznie generowanych zadań maturalnych i podstawowych.</p>
             </header>
             
             <div class="task-top">
                 <div class="filters">
                     <button class="f-btn on" onclick="filterTasks('all', this)">Wszystkie Poziomy</button>
-                    <button class="f-btn easy" onclick="filterTasks('easy', this)">Łatwe (Podstawy)</button>
-                    <button class="f-btn med" onclick="filterTasks('medium', this)">Średnie (Matura)</button>
-                    <button class="f-btn hard" onclick="filterTasks('hard', this)">Trudne (Rozszerzenie)</button>
+                    <button class="f-btn easy" onclick="filterTasks('easy', this)">Podstawy (Easy)</button>
+                    <button class="f-btn med" onclick="filterTasks('medium', this)">Matura (Medium)</button>
+                    <button class="f-btn hard" onclick="filterTasks('hard', this)">Rozszerzenie (Hard)</button>
                 </div>
-
                 <div class="score-box">
                     <div class="score-pill"><span class="score-dot"></span> EXP: <span id="scoreVal">0</span></div>
-                    <div style="font-family:var(--font-code);font-size:0.75rem;color:var(--muted-hi);">Poziom <span id="lvlVal">1</span> | Rozwiązane zadania: <span id="solvedVal">0</span></div>
+                    <div style="font-family:var(--font-code);font-size:0.75rem;color:var(--muted-hi);">Poziom <span id="lvlVal">1</span> | Rozwiązane: <span id="solvedVal">0</span></div>
                     <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
                 </div>
             </div>
 
             <div id="task-container" class="grid"></div>
             
-            <div class="math-kbd-section mt-4" style="margin-top:30px;">
+            <div class="math-kbd-section" style="margin-top:30px;">
                 <button class="kbd-toggle" onclick="toggleMathKbd()">⌨ Pokaż klawiaturę matematyczną</button>
-                <div id="math-kbd" class="math-kbd-wrap" style="margin-top:10px;">
-                    <button class="kbd-key" onclick="insertMath('√')">√ (Pierwiastek)</button>
-                    <button class="kbd-key" onclick="insertMath('π')">π (Pi)</button>
-                    <button class="kbd-key" onclick="insertMath('^2')">x² (Kwadrat)</button>
-                    <button class="kbd-key" onclick="insertMath('/')">/ (Ułamek)</button>
+                <div id="math-kbd" class="math-kbd-wrap">
+                    <button class="kbd-key" onclick="insertMath('√')">√</button>
+                    <button class="kbd-key" onclick="insertMath('π')">π</button>
+                    <button class="kbd-key" onclick="insertMath('^2')">x²</button>
+                    <button class="kbd-key" onclick="insertMath('/')">/</button>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <div id="pomodoro" onclick="togglePomodoro()" title="Kliknij, aby uruchomić/zatrzymać timer nauki">
+    <div id="pomodoro" onclick="togglePomodoro()">
         <i data-lucide="timer"></i> <span id="pom-timer">25:00</span>
     </div>
 
