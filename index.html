@@ -3,333 +3,700 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Zymath Singularity v4 — Potężny silnik matematyczny">
-    <meta name="theme-color" content="#D4A853">
-    <title>Zymath Singularity v4 | Ultimate Edition</title>
-
-    <link rel="stylesheet" href="/style.css">
-    <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js" defer></script>
+    <title>Zymath Singularity v4.0 | Ultimate Math Platform</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Zaawansowany matematyczny silnik edukacyjny — od teorii po obliczenia. 8 trybów obliczeniowych, 150 zadań, AI integration.">
+    <meta name="author" content="5Simoon">
+    <meta name="theme-color" content="#9D7EFF">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Tailwind CSS (Build Output) -->
+    <link rel="stylesheet" href="/index-DzXt9-wS.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- MathJax -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
-    <script src="/engine.js" defer></script>
-    <script src="/main.js" defer></script>
-
-    <script>
-        if (localStorage.getItem('zymath_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
-        function showTab(tabId, btn) {
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(tabId)?.classList.add('active');
-            document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-        }
-    </script>
+    <!-- Desmos Calculator (optional) -->
+    <script src="https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
 </head>
-<body>
-    <canvas id="particles-canvas"></canvas>
-    <div id="snackbar-container"></div>
-    <div id="ach-toast-container"></div>
-
-    <input type="text" id="security_trap" style="display:none" tabindex="-1" autocomplete="off">
-
-    <header class="nav-wrap">
-        <nav role="navigation">
-            <button class="nb active" onclick="showTab('home', this)"><i data-lucide="zap"></i><span>Start</span></button>
-            <button class="nb" onclick="showTab('wiedza', this)"><i data-lucide="book-open"></i><span>Wiedza</span></button>
-            <button class="nb" onclick="showTab('kalkulatory', this)"><i data-lucide="calculator"></i><span>Kalkulatory</span></button>
-            <button class="nb" onclick="showTab('engine', this)"><i data-lucide="cpu"></i><span>Engine</span></button>
-            <button class="nb" onclick="showTab('zadania', this)"><i data-lucide="target"></i><span>Zadania</span></button>
-            <div class="nav-sep"></div>
-            <button class="nav-icon-btn" id="search-btn" title="Szukaj (Ctrl+K)"><i data-lucide="search"></i></button>
-            <button class="nav-icon-btn" id="theme-btn" title="Zmień motyw"><i data-lucide="sun" id="theme-icon"></i></button>
-        </nav>
-    </header>
-
-    <main class="wrap">
-        <section id="home" class="active">
-            <header class="hero">
-                <div class="hero-pill"><span class="hero-dot"></span> System Edukacyjny v4.0</div>
-                <h1 class="main">ZYMATH<br><span class="ac" id="easter-egg-btn">SINGULARITY</span></h1>
-                <p class="hero-sub">Potężne kompendium matematyczne, zaawansowane kalkulatory i silnik numeryczny.</p>
-                <div class="stats-bar">
-                    <div class="stat-pill"><b>8</b> działów teorii</div>
-                    <div class="stat-pill"><b>12</b> kalkulatorów</div>
-                    <div class="stat-pill"><b>150</b> zadań treningowych</div>
+<body class="min-h-svh text-foreground">
+    <!-- Navigation -->
+    <nav class="fixed top-0 inset-x-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl glow-primary">
+                        Z
+                    </div>
+                    <div class="hidden sm:block">
+                        <div class="text-lg font-bold tracking-tight">Zymath</div>
+                        <div class="text-xs text-muted-foreground">Singularity v4.0</div>
+                    </div>
                 </div>
-            </header>
-
-            <h2 class="sh"><i data-lucide="history"></i> Kroniki Matematyki <span class="tag">4 epoki</span></h2>
-            <div class="grid">
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="pyramid"></i> Starożytność (3000 p.n.e. – 500 n.e.)</div>
-                    <div class="tb">Babilończycy wprowadzili system sześćdziesiątkowy. Grecy (Pitagoras, Euklides) wprowadzili <b>dowód matematyczny</b> — wiedza stała się prawdą absolutną.</div>
-                    <div class="ex">a² + b² = c²</div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="globe"></i> Złoty Wiek Islamu (500–1400)</div>
-                    <div class="tb">Indie podały światu <b>zero</b> i system pozycyjny. Al-Chuwarizmi stworzył fundamenty <b>algebry</b>.</div>
-                    <div class="ex">Al-jabr → Algebra. Al-Chuwarizmi → Algorytm.</div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="flask-conical"></i> Rewolucja Naukowa (1500–1800)</div>
-                    <div class="tb">Newton i Leibniz wynaleźli <b>rachunek różniczkowy i całkowy</b>. Euler sformalizował notację: \(e, \pi, i, \sum\).</div>
-                    <div class="ex">e^(iπ) + 1 = 0 — tożsamość Eulera.</div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="binary"></i> Era Komputerów (1900–teraz)</div>
-                    <div class="tb">Gödel udowodnił (1931) istnienie <b>twierdzeń nierozstrzygalnych</b>. Turing zdefiniował matematyczne maszyny liczące.</div>
-                    <div class="tip tip-blue"><i data-lucide="cpu"></i> Kryptografia (RSA) opiera się na rozkładzie wielkich liczb pierwszych.</div>
-                </div></article>
+                
+                <!-- Nav Links -->
+                <div class="flex gap-1">
+                    <button onclick="showSection('home')" class="nav-btn" data-section="home">
+                        <i data-lucide="home" class="size-5"></i>
+                        <span class="hidden sm:inline">Home</span>
+                    </button>
+                    <button onclick="showSection('knowledge')" class="nav-btn" data-section="knowledge">
+                        <i data-lucide="book-open" class="size-5"></i>
+                        <span class="hidden sm:inline">Wiedza</span>
+                    </button>
+                    <button onclick="showSection('calculator')" class="nav-btn" data-section="calculator">
+                        <i data-lucide="calculator" class="size-5"></i>
+                        <span class="hidden sm:inline">Kalkulator</span>
+                    </button>
+                    <button onclick="showSection('engine')" class="nav-btn" data-section="engine">
+                        <i data-lucide="cpu" class="size-5"></i>
+                        <span class="hidden sm:inline">Engine</span>
+                    </button>
+                    <button onclick="showSection('tasks')" class="nav-btn" data-section="tasks">
+                        <i data-lucide="trophy" class="size-5"></i>
+                        <span class="hidden sm:inline">Zadania</span>
+                    </button>
+                </div>
             </div>
+        </div>
+    </nav>
 
-            <h2 class="sh"><i data-lucide="sparkles"></i> Anomalie Wszechświata <span class="tag">6 faktów</span></h2>
-            <div class="grid-3">
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="equal"></i> 0.999... = 1</div><div class="tb">Absolutny fakt analityczny: \(3 \times \frac{1}{3} = 0.999... = 1\).</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="infinite"></i> Hotel Hilberta</div><div class="tb">Nieskończony zajęty hotel ma miejsce dla nowego gościa (przesunięcie z n do n+1).</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="atom"></i> Liczba Googolplex</div><div class="tb">Zapis dziesiętny \(10^{10^{100}}\) nie zmieściłby się w całym Wszechświecie.</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="leaf"></i> Złota Proporcja φ</div><div class="tb">Iloraz ciągu Fibonacciego dąży do \(\varphi \approx 1.618\).</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="wind"></i> Teoria Chaosu</div><div class="tb">Efekt motyla udowadnia nieprzewidywalność deterministycznych układów.</div></div></article>
-                <article class="card"><div class="ci"><div class="ct"><i data-lucide="dice-5"></i> Paradoks Urodzin</div><div class="tb">W grupie 23 osób szansa na wspólne urodziny przekracza 50%.</div></div></article>
+    <!-- Main Content -->
+    <main class="pt-20 pb-10">
+        <!-- HOME SECTION -->
+        <section id="home" class="section active">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <!-- Hero -->
+                <div class="py-20 text-center">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-lighter border border-primary/20 mb-6 pulse-glow">
+                        <i data-lucide="sparkles" class="size-4 text-accent"></i>
+                        <span class="text-sm font-medium">Ultimate Edition 4.0</span>
+                    </div>
+                    
+                    <h1 class="text-5xl sm:text-7xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent" style="background-size: 200% 200%; animation: gradientShift 8s ease infinite;">
+                        Zymath Singularity
+                    </h1>
+                    
+                    <p class="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10">
+                        Zaawansowany matematyczny silnik edukacyjny — od teorii po obliczenia
+                    </p>
+                    
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+                        <div class="glass-card p-6 rounded-xl border border-primary/10">
+                            <div class="text-3xl font-bold text-primary mb-2">8</div>
+                            <div class="text-sm text-muted-foreground">Tryby Engine</div>
+                        </div>
+                        <div class="glass-card p-6 rounded-xl border border-accent/10">
+                            <div class="text-3xl font-bold text-accent mb-2">150</div>
+                            <div class="text-sm text-muted-foreground">Zadania</div>
+                        </div>
+                        <div class="glass-card p-6 rounded-xl border border-primary/10">
+                            <div class="text-3xl font-bold text-primary mb-2">A+</div>
+                            <div class="text-sm text-muted-foreground">Security</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Grid -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
+                    <div class="feature-card">
+                        <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                            <i data-lucide="calculator" class="size-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">12 Kalkulatorów</h3>
+                        <p class="text-muted-foreground text-sm">
+                            Od podstawowych działań po zaawansowane: graph engine, kwadratowe, układy równań
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="size-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                            <i data-lucide="cpu" class="size-6 text-accent"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">NEXUS Math Engine</h3>
+                        <p class="text-muted-foreground text-sm">
+                            8 trybów: Numerical, Calculus, Linear Algebra, Statistics, Number Theory
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                            <i data-lucide="brain" class="size-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">AI Integration</h3>
+                        <p class="text-muted-foreground text-sm">
+                            Claude Sonnet 4.6 — krok-po-kroku rozwiązania matematyczne
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="size-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                            <i data-lucide="trophy" class="size-6 text-accent"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">150 Zadań</h3>
+                        <p class="text-muted-foreground text-sm">
+                            System EXP, 3 poziomy trudności, inteligentne podpowiedzi
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                            <i data-lucide="shield-check" class="size-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">Security A+</h3>
+                        <p class="text-muted-foreground text-sm">
+                            CSP, HSTS, SHA-256 hashing, Cloudflare Turnstile, rate limiting
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="size-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                            <i data-lucide="zap" class="size-6 text-accent"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">Glassmorphism UI</h3>
+                        <p class="text-muted-foreground text-sm">
+                            Nowoczesny design: backdrop blur, smooth animations, 60 FPS
+                        </p>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section id="wiedza">
-            <header class="hero" style="padding-bottom:10px">
-                <h1 class="main">Baza <span class="ac">Wiedzy</span></h1>
-                <p class="hero-sub">Kompletne Vademecum Wzorów.</p>
-            </header>
-
-            <h2 class="sh"><i data-lucide="atom"></i> Stałe Matematyczne</h2>
-            <article class="card span"><div class="ci">
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
-                    <div><code>π ≈ 3.14159... — Stosunek obwodu do średnicy</code><code>e ≈ 2.71828... — Podstawa logarytmu naturalnego</code></div>
-                    <div><code>φ ≈ 1.61803... — Złota proporcja</code><code>i = √(-1) — Jednostka urojona</code></div>
+        <!-- KNOWLEDGE SECTION -->
+        <section id="knowledge" class="section">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-bold mb-3">Baza Wiedzy</h2>
+                    <p class="text-muted-foreground">8 działów matematycznych — od podstaw do zaawansowanych</p>
                 </div>
-            </div></article>
-
-            <h2 class="sh"><i data-lucide="variable"></i> Algebra, Potęgi, Logarytmy</h2>
-            <div class="grid">
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="braces"></i> Skrócone Mnożenie</div>
-                    <div class="math-block">
-                        $$(a \pm b)^2 = a^2 \pm 2ab + b^2$$
-                        $$a^2 - b^2 = (a-b)(a+b)$$
-                        $$(a \pm b)^3 = a^3 \pm 3a^2b + 3ab^2 \pm b^3$$
-                        $$a^3 \pm b^3 = (a \pm b)(a^2 \mp ab + b^2)$$
-                    </div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="zap"></i> Potęgi i Pierwiastki</div>
-                    <div class="math-block">
-                        $$a^m \cdot a^n = a^{m+n}$$
-                        $$(a^m)^n = a^{m \cdot n}$$
-                        $$a^{\frac{m}{n}} = \sqrt[n]{a^m}$$
-                    </div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="activity"></i> Równanie Kwadratowe</div>
-                    <div class="math-block">
-                        $$y = ax^2 + bx + c$$
-                        $$\Delta = b^2 - 4ac$$
-                        $$x_{1,2} = \frac{-b \pm \sqrt{\Delta}}{2a}$$
-                    </div>
-                    <div class="tb">Wierzchołek: \( p = \frac{-b}{2a}, q = \frac{-\Delta}{4a} \)</div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="logs"></i> Logarytmy</div>
-                    <div class="math-block">
-                        $$\log_a b = c \iff a^c = b$$
-                        $$\log_a(x \cdot y) = \log_a x + \log_a y$$
-                        $$\log_a \left(\frac{x}{y}\right) = \log_a x - \log_a y$$
-                        $$\log_a(x^n) = n \cdot \log_a x$$
-                    </div>
-                    <div class="ex">a > 0, a ≠ 1, b > 0. ln(x) to log_e(x).</div>
-                </div></article>
-            </div>
-
-            <h2 class="sh"><i data-lucide="triangle"></i> Trygonometria i Ciągi</h2>
-            <div class="grid">
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="triangle"></i> Tożsamości Trygonometryczne</div>
-                    <div class="math-block">
-                        $$\sin^2\alpha + \cos^2\alpha = 1$$
-                        $$\tan\alpha = \frac{\sin\alpha}{\cos\alpha}$$
-                        $$\sin(2\alpha) = 2\sin\alpha\cos\alpha$$
-                    </div>
-                    <table>
-                        <tr><th>Kąt α</th><th>30° (π/6)</th><th>45° (π/4)</th><th>60° (π/3)</th></tr>
-                        <tr><td><b>sin</b></td><td>1/2</td><td>√2/2</td><td>√3/2</td></tr>
-                        <tr><td><b>cos</b></td><td>√3/2</td><td>√2/2</td><td>1/2</td></tr>
-                        <tr><td><b>tan</b></td><td>√3/3</td><td>1</td><td>√3</td></tr>
-                    </table>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="move-right"></i> Ciąg Arytmetyczny</div>
-                    <div class="math-block">
-                        $$a_n = a_1 + (n-1)r$$
-                        $$S_n = \frac{a_1 + a_n}{2} \cdot n$$
-                    </div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="git-branch"></i> Ciąg Geometryczny</div>
-                    <div class="math-block">
-                        $$a_n = a_1 \cdot q^{n-1}$$
-                        $$S_n = a_1 \frac{1 - q^n}{1 - q}$$
-                    </div>
-                </div></article>
-            </div>
-
-            <h2 class="sh"><i data-lucide="shapes"></i> Geometria, Kombinatoryka i Analiza</h2>
-            <div class="grid-3">
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="square"></i> Figury i Bryły</div>
-                    <code>Kwadrat: P = a² | d = a√2</code>
-                    <code>Trójkąt: P = ½·a·h</code>
-                    <code>Koło: P = πr² | Obwód = 2πr</code>
-                    <code>Sześcian: V = a³ | Pc = 6a²</code>
-                    <code>Walec: V = πr²H</code>
-                    <code>Kula: V = ⁴⁄₃πr³</code>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="git-merge"></i> Kombinatoryka</div>
-                    <div class="math-block" style="font-size:1rem; line-height:2.2;">
-                        Permutacje: $$P_n = n!$$
-                        Kombinacje: $$C_n^k = \binom{n}{k} = \frac{n!}{k!(n-k)!}$$
-                    </div>
-                    <div class="tb" style="border:none;">Prawdopodobieństwo klasyczne: P(A) = |A| / |Ω|</div>
-                </div></article>
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="trending-up"></i> Pochodne (Podstawy)</div>
-                    <div class="math-block" style="font-size:1rem; line-height:2.2;">
-                        $$(c)' = 0$$
-                        $$(x^n)' = n x^{n-1}$$
-                        $$(e^x)' = e^x \quad (\ln x)' = \frac{1}{x}$$
-                        $$(\sin x)' = \cos x \quad (\cos x)' = -\sin x$$
-                    </div>
-                </div></article>
-            </div>
-        </section>
-
-        <section id="kalkulatory">
-            <h2 class="sh"><i data-lucide="calculator"></i> Terminal Kalkulacyjny</h2>
-
-            <article class="card span" style="margin-bottom:24px;">
-                <div class="ci">
-                    <div class="ct"><i data-lucide="line-chart"></i> Zymath Graph Engine 3.1</div>
-                    <div class="graph-wrap">
-                        <div>
-                            <div class="fn-row"><div class="fn-dot" style="background:var(--rust)"></div><input type="text" id="fn1" value="Math.sin(x)"></div>
-                            <div class="fn-row"><div class="fn-dot" style="background:var(--gold)"></div><input type="text" id="fn2" placeholder="opcjonalna..."></div>
-                            <div class="ig" style="margin-top:16px;">
-                                <label for="gScale">Zoom osi</label>
-                                <input type="range" id="gScale" min="10" max="150" value="45" style="width:100%">
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="knowledge-card" onclick="toggleKnowledge(this)">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Stałe Matematyczne</h3>
+                            <i data-lucide="chevron-down" class="size-5 text-muted-foreground transition-transform"></i>
+                        </div>
+                        <div class="knowledge-content hidden">
+                            <div class="space-y-3 text-sm">
+                                <div class="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>π (Pi)</strong> — $\pi \approx 3.14159...$<br>
+                                    Stosunek obwodu koła do średnicy
+                                </div>
+                                <div class="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>e (Euler)</strong> — $e \approx 2.71828...$<br>
+                                    Podstawa logarytmu naturalnego
+                                </div>
+                                <div class="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>φ (Phi)</strong> — $\phi = \frac{1 + \sqrt{5}}{2} \approx 1.618...$<br>
+                                    Złoty podział
+                                </div>
+                                <div class="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>i (jednostka urojona)</strong> — $i^2 = -1$<br>
+                                    Liczby zespolone
+                                </div>
                             </div>
                         </div>
-                        <canvas id="gCanvas"></canvas>
                     </div>
-                </div>
-            </article>
-
-            <div class="grid">
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="target"></i> Analiza Funkcji Kwadratowej</div>
-                    <div style="display:flex;gap:8px;">
-                        <input type="number" id="qa" placeholder="a">
-                        <input type="number" id="qb" placeholder="b">
-                        <input type="number" id="qc" placeholder="c">
-                    </div>
-                    <button class="btn" id="btn-calc-quad">Oblicz (Δ, x₁, x₂)</button>
-                    <div class="rb" id="quadRes" style="text-align:center;">Oczekiwanie…</div>
-                </div></article>
-
-                <article class="card"><div class="ci">
-                    <div class="ct"><i data-lucide="git-branch-plus"></i> Układ Równań Liniowych 2x2</div>
-                    <div style="display:flex;gap:8px;margin-bottom:8px">
-                        <input type="number" id="s_a1" placeholder="a₁"><input type="number" id="s_b1" placeholder="b₁"><input type="number" id="s_c1" placeholder="c₁">
-                    </div>
-                    <div style="display:flex;gap:8px;">
-                        <input type="number" id="s_a2" placeholder="a₂"><input type="number" id="s_b2" placeholder="b₂"><input type="number" id="s_c2" placeholder="c₂">
-                    </div>
-                    <button class="btn" id="btn-calc-sys">Rozwiąż Metodą Cramera</button>
-                    <div class="rb" id="sysRes" style="text-align:center;">Oczekiwanie…</div>
-                </div></article>
-            </div>
-            
-            <h2 class="sh" style="margin-top:40px;"><i data-lucide="history"></i> Historia Obliczeń</h2>
-            <article class="card span"><div class="ci">
-                <div id="historyList"></div>
-            </div></article>
-        </section>
-
-        <section id="engine">
-            <header class="hero" style="padding-bottom:10px">
-                <h1 class="main">NEXUS <span class="ac">Engine</span></h1>
-                <p class="hero-sub">Potężny parser matematyczny. Algorytmy numeryczne i algebraiczne.</p>
-            </header>
-            <article class="card span">
-                <div class="ci" style="text-align: center;">
-                    <div id="engine-modes" style="display:flex; gap:10px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;"></div>
                     
-                    <div style="max-width: 600px; margin: 0 auto; width: 100%;">
-                        <input type="text" id="engine-input" placeholder="Wpisz np: integral(x*x, 0, 3) lub 2+2*sin(pi/2)" style="font-size: 1.2rem; padding: 16px; text-align: center; width:100%; border:1px solid var(--border); background:var(--bg); color:var(--text); border-radius:var(--r-sm); outline:none;">
-                        <button class="btn" id="engine-compute-btn" style="margin-top:16px;">Analizuj za pomocą Silnika</button>
-                        <div id="engine-output" class="rb" style="font-size: 1.2rem; color: var(--gold); min-height: 80px; display: flex; flex-direction:column; align-items: center; justify-content: center; margin-top:20px;">
-                            Oczekiwanie na zapytanie...
+                    <div class="knowledge-card" onclick="toggleKnowledge(this)">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Algebra</h3>
+                            <i data-lucide="chevron-down" class="size-5 text-muted-foreground transition-transform"></i>
+                        </div>
+                        <div class="knowledge-content hidden">
+                            <div class="space-y-3 text-sm">
+                                <div class="p-3 rounded-lg bg-accent/5 border border-accent/10">
+                                    <strong>Wzory skróconego mnożenia</strong><br>
+                                    $(a+b)^2 = a^2 + 2ab + b^2$<br>
+                                    $(a-b)^2 = a^2 - 2ab + b^2$<br>
+                                    $(a+b)(a-b) = a^2 - b^2$
+                                </div>
+                                <div class="p-3 rounded-lg bg-accent/5 border border-accent/10">
+                                    <strong>Potęgi</strong><br>
+                                    $a^m \cdot a^n = a^{m+n}$<br>
+                                    $(a^m)^n = a^{m \cdot n}$<br>
+                                    $a^{-n} = \frac{1}{a^n}$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="knowledge-card" onclick="toggleKnowledge(this)">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Równania Kwadratowe</h3>
+                            <i data-lucide="chevron-down" class="size-5 text-muted-foreground transition-transform"></i>
+                        </div>
+                        <div class="knowledge-content hidden">
+                            <div class="space-y-3 text-sm">
+                                <div class="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>Postać ogólna:</strong> $ax^2 + bx + c = 0$
+                                </div>
+                                <div class="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>Delta:</strong> $\Delta = b^2 - 4ac$
+                                </div>
+                                <div class="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>Pierwiastki:</strong><br>
+                                    $x_1 = \frac{-b - \sqrt{\Delta}}{2a}$<br>
+                                    $x_2 = \frac{-b + \sqrt{\Delta}}{2a}$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="knowledge-card" onclick="toggleKnowledge(this)">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Trygonometria</h3>
+                            <i data-lucide="chevron-down" class="size-5 text-muted-foreground transition-transform"></i>
+                        </div>
+                        <div class="knowledge-content hidden">
+                            <div class="space-y-3 text-sm">
+                                <div class="p-3 rounded-lg bg-accent/5 border border-accent/10">
+                                    <strong>Podstawowa tożsamość:</strong><br>
+                                    $\sin^2\alpha + \cos^2\alpha = 1$
+                                </div>
+                                <div class="p-3 rounded-lg bg-accent/5 border border-accent/10">
+                                    <strong>Wzory redukcyjne:</strong><br>
+                                    $\sin(90° - \alpha) = \cos\alpha$<br>
+                                    $\cos(90° - \alpha) = \sin\alpha$
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </article>
+            </div>
         </section>
 
-        <section id="zadania">
-            <header class="hero" style="padding-bottom:10px">
-                <h1 class="main">Zadania <span class="ac">Treningowe</span></h1>
-                <p class="hero-sub">150 dynamicznie generowanych zadań. Zdobądź rangę Mistrza.</p>
-            </header>
-            
-            <div class="task-top">
-                <div class="filters" id="task-filters">
-                    <button class="f-btn on" data-filter="all">Wszystkie Poziomy</button>
-                    <button class="f-btn easy" data-filter="easy">Podstawy (Easy)</button>
-                    <button class="f-btn med" data-filter="medium">Matura (Medium)</button>
-                    <button class="f-btn hard" data-filter="hard">Rozszerzenie (Hard)</button>
+        <!-- CALCULATOR SECTION -->
+        <section id="calculator" class="section">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-bold mb-3">Terminal Kalkulacyjny</h2>
+                    <p class="text-muted-foreground">12 modułów — od podstawowych do zaawansowanych</p>
                 </div>
-                <div class="score-box">
-                    <div class="score-pill"><span class="score-dot"></span> EXP: <span id="scoreVal">0</span></div>
-                    <div style="font-family:var(--font-code);font-size:0.75rem;color:var(--muted-hi);">Poziom <span id="lvlVal">1</span> | Rozwiązane: <span id="solvedVal">0</span>/150</div>
-                    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+                
+                <!-- Calculator Tabs -->
+                <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+                    <button onclick="showCalculator('graph')" class="calc-tab active" data-calc="graph">
+                        <i data-lucide="line-chart" class="size-4"></i>
+                        Graph Engine
+                    </button>
+                    <button onclick="showCalculator('desmos')" class="calc-tab" data-calc="desmos">
+                        <i data-lucide="chart-line" class="size-4"></i>
+                        Desmos Pro
+                    </button>
+                    <button onclick="showCalculator('quad')" class="calc-tab" data-calc="quad">
+                        <i data-lucide="square-function" class="size-4"></i>
+                        Kwadratowe
+                    </button>
+                    <button onclick="showCalculator('system')" class="calc-tab" data-calc="system">
+                        <i data-lucide="grid-2x2" class="size-4"></i>
+                        Układ 2x2
+                    </button>
+                </div>
+                
+                <!-- Graph Engine -->
+                <div id="calc-graph" class="calc-panel active">
+                    <div class="grid lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="glass-card p-6 rounded-xl">
+                                <h3 class="text-lg font-semibold mb-4">Zymath Graph Engine 3.1</h3>
+                                <canvas id="graphCanvas" class="w-full h-[500px] rounded-lg border border-border bg-black/20"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="glass-card p-6 rounded-xl space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Funkcja 1 (fioletowa)</label>
+                                    <input type="text" id="func1" value="x^2" placeholder="np. x^2 lub sin(x)" 
+                                        class="glass-input w-full px-3 py-2 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Funkcja 2 (cyan)</label>
+                                    <input type="text" id="func2" value="2*x" placeholder="np. 2*x lub cos(x)" 
+                                        class="glass-input w-full px-3 py-2 rounded-lg">
+                                </div>
+                                <button onclick="drawGraph()" class="btn-primary w-full">
+                                    <i data-lucide="play" class="size-4"></i>
+                                    Rysuj Wykres
+                                </button>
+                                <div class="text-xs text-muted-foreground space-y-1">
+                                    <p>• Pan: przeciągnij myszą</p>
+                                    <p>• Zoom: scroll</p>
+                                    <p>• Reset: podwójne kliknięcie</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Desmos -->
+                <div id="calc-desmos" class="calc-panel">
+                    <div class="glass-card p-6 rounded-xl">
+                        <h3 class="text-lg font-semibold mb-4">Desmos Pro API</h3>
+                        <div id="desmos-calculator" class="w-full h-[600px] rounded-lg border border-border"></div>
+                    </div>
+                </div>
+                
+                <!-- Quadratic -->
+                <div id="calc-quad" class="calc-panel">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="glass-card p-8 rounded-xl">
+                            <h3 class="text-lg font-semibold mb-6">Analiza Kwadratowa: $ax^2 + bx + c = 0$</h3>
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">a</label>
+                                    <input type="number" id="quad-a" value="1" class="glass-input w-full px-3 py-2 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">b</label>
+                                    <input type="number" id="quad-b" value="-5" class="glass-input w-full px-3 py-2 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">c</label>
+                                    <input type="number" id="quad-c" value="6" class="glass-input w-full px-3 py-2 rounded-lg">
+                                </div>
+                            </div>
+                            <button onclick="solveQuadratic()" class="btn-primary w-full mb-6">
+                                <i data-lucide="check-circle" class="size-4"></i>
+                                Rozwiąż
+                            </button>
+                            <div id="quad-result" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System 2x2 -->
+                <div id="calc-system" class="calc-panel">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="glass-card p-8 rounded-xl">
+                            <h3 class="text-lg font-semibold mb-6">Układ Równań 2x2</h3>
+                            <div class="space-y-4 mb-6">
+                                <div class="grid grid-cols-3 gap-4 items-center">
+                                    <input type="number" id="sys-a1" value="2" class="glass-input px-3 py-2 rounded-lg" placeholder="a₁">
+                                    <input type="number" id="sys-b1" value="3" class="glass-input px-3 py-2 rounded-lg" placeholder="b₁">
+                                    <input type="number" id="sys-c1" value="7" class="glass-input px-3 py-2 rounded-lg" placeholder="c₁">
+                                </div>
+                                <div class="grid grid-cols-3 gap-4 items-center">
+                                    <input type="number" id="sys-a2" value="5" class="glass-input px-3 py-2 rounded-lg" placeholder="a₂">
+                                    <input type="number" id="sys-b2" value="-2" class="glass-input px-3 py-2 rounded-lg" placeholder="b₂">
+                                    <input type="number" id="sys-c2" value="4" class="glass-input px-3 py-2 rounded-lg" placeholder="c₂">
+                                </div>
+                            </div>
+                            <button onclick="solveSystem()" class="btn-primary w-full mb-6">
+                                <i data-lucide="check-circle" class="size-4"></i>
+                                Rozwiąż (Cramer)
+                            </button>
+                            <div id="system-result" class="space-y-3"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div id="task-container" class="grid"></div>
-            
-            <div class="math-kbd-section" style="margin-top:40px;">
-                <button class="kbd-toggle" id="kbd-toggle-btn">⌨ Pokaż klawiaturę matematyczną</button>
-                <div id="math-kbd" class="math-kbd-wrap">
-                    <button class="kbd-key" data-char="√">√</button>
-                    <button class="kbd-key" data-char="π">π</button>
-                    <button class="kbd-key" data-char="^2">x²</button>
-                    <button class="kbd-key" data-char="/">/</button>
-                    <button class="kbd-key" data-char="sin()">sin</button>
-                    <button class="kbd-key" data-char="cos()">cos</button>
+        <!-- ENGINE SECTION -->
+        <section id="engine" class="section">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-bold mb-3">NEXUS Math Engine</h2>
+                    <p class="text-muted-foreground">8 trybów obliczeniowych — od numerical po graph theory</p>
+                </div>
+                
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2">
+                        <div class="glass-card p-6 rounded-xl">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="size-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                                    <i data-lucide="cpu" class="size-5 text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold">Terminal</h3>
+                                    <p class="text-xs text-muted-foreground">Wpisz wyrażenie i naciśnij Enter</p>
+                                </div>
+                            </div>
+                            
+                            <input type="text" id="engine-input" placeholder="sqrt(144) | derivative:sin(x^2),x=1 | stats:[12,15,18,22,25]" 
+                                class="glass-input w-full px-4 py-3 rounded-lg mb-4 font-mono text-sm"
+                                onkeypress="if(event.key==='Enter') computeEngine()">
+                            
+                            <div id="engine-output" class="bg-black/30 rounded-lg p-4 min-h-[300px] font-mono text-sm overflow-auto">
+                                <div class="text-muted-foreground">NEXUS Math Engine v4.0 ready...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="glass-card p-6 rounded-xl">
+                            <h4 class="font-semibold mb-3 flex items-center gap-2">
+                                <i data-lucide="info" class="size-4 text-primary"></i>
+                                Tryby
+                            </h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>Numerical:</strong> sqrt(), gamma(), bessel()
+                                </div>
+                                <div class="p-2 rounded-lg bg-accent/5 border border-accent/10">
+                                    <strong>Calculus:</strong> derivative:, integral:, newton:
+                                </div>
+                                <div class="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>Linear Algebra:</strong> det:, eigen:, inverse:
+                                </div>
+                                <div class="p-2 rounded-lg bg-accent/5 border border-accent/10">
+                                    <strong>Statistics:</strong> stats:, regression:, ttest:
+                                </div>
+                                <div class="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                                    <strong>Number Theory:</strong> isprime:, factor:, collatz:
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card p-6 rounded-xl">
+                            <h4 class="font-semibold mb-3 flex items-center gap-2">
+                                <i data-lucide="lightbulb" class="size-4 text-accent"></i>
+                                Przykłady
+                            </h4>
+                            <div class="space-y-2 text-xs font-mono">
+                                <button onclick="setEngineInput('sqrt(144)')" class="text-left w-full p-2 rounded hover:bg-white/5 transition">
+                                    sqrt(144)
+                                </button>
+                                <button onclick="setEngineInput('derivative:sin(x^2),x=1')" class="text-left w-full p-2 rounded hover:bg-white/5 transition">
+                                    derivative:sin(x^2),x=1
+                                </button>
+                                <button onclick="setEngineInput('stats:[12,15,18,22,25,28]')" class="text-left w-full p-2 rounded hover:bg-white/5 transition">
+                                    stats:[12,15,18,22,25,28]
+                                </button>
+                                <button onclick="setEngineInput('isprime:997')" class="text-left w-full p-2 rounded hover:bg-white/5 transition">
+                                    isprime:997
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TASKS SECTION -->
+        <section id="tasks" class="section">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="mb-10 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-4xl font-bold mb-3">System Zadań</h2>
+                        <p class="text-muted-foreground">150 zadań • 3 poziomy trudności • System EXP</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-sm text-muted-foreground mb-1">Poziom</div>
+                        <div class="text-2xl font-bold text-primary" id="user-level">1</div>
+                        <div class="text-xs text-muted-foreground">
+                            <span id="user-exp">0</span> / <span id="exp-needed">100</span> EXP
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="glass-card p-6 rounded-xl mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium">Postęp ogólny</span>
+                        <span class="text-sm text-muted-foreground"><span id="tasks-completed">0</span> / 150</span>
+                    </div>
+                    <div class="h-3 bg-black/30 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-primary to-accent transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- Filters -->
+                <div class="flex gap-2 mb-6">
+                    <button onclick="filterTasks('all')" class="filter-btn active" data-filter="all">Wszystkie</button>
+                    <button onclick="filterTasks('easy')" class="filter-btn" data-filter="easy">
+                        <span class="inline-block size-2 rounded-full bg-green-400 mr-2"></span>
+                        Easy
+                    </button>
+                    <button onclick="filterTasks('medium')" class="filter-btn" data-filter="medium">
+                        <span class="inline-block size-2 rounded-full bg-yellow-400 mr-2"></span>
+                        Medium
+                    </button>
+                    <button onclick="filterTasks('hard')" class="filter-btn" data-filter="hard">
+                        <span class="inline-block size-2 rounded-full bg-red-400 mr-2"></span>
+                        Hard
+                    </button>
+                </div>
+                
+                <!-- Tasks List -->
+                <div id="tasks-list" class="grid md:grid-cols-2 gap-4">
+                    <!-- Tasks will be generated by JavaScript -->
                 </div>
             </div>
         </section>
     </main>
 
-    <div id="search-overlay">
-        <div class="search-box">
-            <div class="search-input-wrap">
-                <i data-lucide="search"></i>
-                <input type="text" id="searchInput" placeholder="Szukaj wzorów i funkcji..." autocomplete="off">
-                <button class="search-close-btn" id="search-close">ESC</button>
+    <!-- Footer -->
+    <footer class="border-t border-border/50 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="font-semibold mb-3">Zymath Singularity</h3>
+                    <p class="text-sm text-muted-foreground">
+                        Zaawansowany matematyczny silnik edukacyjny — v4.0 Ultimate Edition
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">Technologie</h4>
+                    <ul class="text-sm text-muted-foreground space-y-2">
+                        <li>• HTML5 + Modern CSS</li>
+                        <li>• Vanilla JavaScript ES6+</li>
+                        <li>• MathJax 3 + Desmos API</li>
+                        <li>• Vercel Serverless</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">Autor</h4>
+                    <p class="text-sm text-muted-foreground">
+                        <strong>5Simoon</strong><br>
+                        Szkoła Podstawowa nr 149<br>
+                        Kraków, Poland • 2025/2026
+                    </p>
+                </div>
             </div>
-            <div id="searchResults" class="search-results"></div>
+            <div class="border-t border-border/30 mt-8 pt-8 text-center text-sm text-muted-foreground">
+                Made with 💜 in Kraków • GNU GPL v3 License
+            </div>
         </div>
-    </div>
+    </footer>
 
-    <div id="pomodoro" title="Kliknij, aby uruchomić/zatrzymać timer nauki">
-        <i data-lucide="timer"></i> <span id="pom-timer">25:00</span>
-    </div>
+    <!-- Custom Styles -->
+    <style>
+        /* Navigation */
+        .nav-btn {
+            @apply flex items-center gap-2 px-4 py-2 rounded-lg transition-all;
+            @apply hover:bg-primary/10 text-muted-foreground;
+        }
+        .nav-btn.active {
+            @apply bg-primary/20 text-primary font-medium;
+        }
+        
+        /* Glass Effects */
+        .glass {
+            @apply bg-black/30 backdrop-blur-sm border-b border-white/[0.06];
+        }
+        .glass-card {
+            background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .glass-lighter {
+            background: rgba(25, 29, 46, 0.5);
+            backdrop-filter: blur(16px);
+        }
+        .glass-input {
+            @apply bg-black/20 backdrop-blur-sm border border-border/50 transition-all;
+            @apply focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            @apply flex items-center justify-center gap-2 px-6 py-3 rounded-lg;
+            @apply bg-gradient-to-r from-primary to-primary-foreground text-primary-foreground;
+            @apply font-medium transition-all hover:shadow-lg hover:-translate-y-0.5;
+        }
+        
+        /* Sections */
+        .section {
+            @apply hidden opacity-0 transition-opacity duration-300;
+        }
+        .section.active {
+            @apply block opacity-100;
+        }
+        
+        /* Feature Cards */
+        .feature-card {
+            @apply glass-card p-6 rounded-xl border border-white/[0.06];
+            @apply transition-all hover:-translate-y-1 hover:shadow-xl;
+        }
+        
+        /* Knowledge Cards */
+        .knowledge-card {
+            @apply glass-card p-6 rounded-xl border border-white/[0.06] cursor-pointer;
+            @apply transition-all hover:-translate-y-1;
+        }
+        .knowledge-content {
+            @apply transition-all duration-300;
+        }
+        
+        /* Calculator Tabs */
+        .calc-tab {
+            @apply flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap;
+            @apply text-sm transition-all hover:bg-primary/10;
+        }
+        .calc-tab.active {
+            @apply bg-primary/20 text-primary font-medium;
+        }
+        .calc-panel {
+            @apply hidden opacity-0;
+        }
+        .calc-panel.active {
+            @apply block opacity-100;
+        }
+        
+        /* Filter Buttons */
+        .filter-btn {
+            @apply px-4 py-2 rounded-lg text-sm transition-all;
+            @apply hover:bg-primary/10;
+        }
+        .filter-btn.active {
+            @apply bg-primary/20 text-primary font-medium;
+        }
+        
+        /* Animations */
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        .glow-primary {
+            box-shadow: 0 0 24px hsl(var(--primary) / 0.4);
+        }
+    </style>
 
+    <!-- Load external scripts -->
+    <script src="/main.js" defer></script>
+    <script src="/engine.js" defer></script>
+    
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
 </body>
 </html>
