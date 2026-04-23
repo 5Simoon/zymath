@@ -1,4 +1,4 @@
-# icosahedron 🌌 ZYMATH SINGULARITY v2
+🌌 ZYMATH SINGULARITY v2
 > **Zaawansowany matematyczny silnik edukacyjny — od teorii po dowody.**
 
 ![Status](https://img.shields.io/badge/Status-Online-10b981?style=for-the-badge)
